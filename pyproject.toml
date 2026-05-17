@@ -1,0 +1,41 @@
+[project]
+name = "fram"
+version = "0.1.0"
+description = "A compact media workshop for terminal, API, and Telegram."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "aiogram>=3.4",
+  "fastapi>=0.111",
+  "ffmpeg-python>=0.2",
+  "pillow>=10.3",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.2",
+  "python-multipart>=0.0.9",
+  "textual>=0.58",
+  "typer>=0.12",
+  "uvicorn>=0.30",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.2",
+  "ruff>=0.4",
+]
+
+[project.scripts]
+fram = "fram.cli.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["fram"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

@@ -1,0 +1,64 @@
+from fram.core.media import MediaType
+
+CHANNEL_HTML = '📣 <a href="https://t.me/there_is_no_meme">Channel</a>'
+CHANNEL_MARKDOWN = "📣 [Channel](https://t.me/there_is_no_meme)"
+
+
+def welcome() -> str:
+    return (
+        "👋 <b>Fram</b>\n\n"
+        "Send me an image or video file. I can resize, crop, compress, and cut media.\n\n"
+        "Best input: send media as a file/document when you want to preserve quality.\n\n"
+        f"{CHANNEL_HTML}"
+    )
+
+
+def media_loaded(filename: str, media_type: MediaType) -> str:
+    label = "image" if media_type == MediaType.IMAGE else "video"
+    return (
+        f"✅ Loaded <b>{filename}</b>\n"
+        f"Type: <b>{label}</b>\n\n"
+        "Choose what to do next."
+    )
+
+
+def action_prompt(action: str, media_type: MediaType) -> str:
+    prompts = {
+        "resize": "📐 Send target size, for example: <code>128x128</code>",
+        "crop": "✂️ Send crop size, optionally with anchor: <code>128x128 center</code>",
+        "compress": _compress_prompt(media_type),
+        "cut": "🎞 Send range: <code>00:00:05 00:00:12</code> or <code>5 duration 10</code>",
+        "fps": "🎚 Send FPS value, for example: <code>24</code>",
+        "strip-audio": "🔇 Tap Apply to remove audio.",
+        "extract-frame": "🖼 Send timestamp, for example: <code>00:00:05</code>",
+    }
+    return prompts[action]
+
+
+def processing() -> str:
+    return "⚙️ Processing media..."
+
+
+def done() -> str:
+    return f"✅ Done.\n\n{CHANNEL_HTML}"
+
+
+def cancelled() -> str:
+    return "Cancelled. Send another image or video when ready."
+
+
+def invalid_input(error: str) -> str:
+    return f"⚠️ {error}\n\nTry again or tap Cancel."
+
+
+def unsupported() -> str:
+    return "⚠️ I could not use this media type yet. Try jpg, png, webp, mp4, mov, mkv, or webm."
+
+
+def _compress_prompt(media_type: MediaType) -> str:
+    if media_type == MediaType.IMAGE:
+        return (
+            "🗜 Send image quality from <code>1</code> to <code>100</code>. "
+            "Good default: <code>82</code>"
+        )
+    return "🗜 Send CRF from <code>0</code> to <code>51</code>. Good default: <code>23</code>"

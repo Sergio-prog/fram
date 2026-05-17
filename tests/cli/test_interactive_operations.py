@@ -1,0 +1,65 @@
+import pytest
+
+from fram.cli.interactive.operations import (
+    actions_for,
+    build_interactive_operation,
+    describe_operation,
+)
+from fram.core.errors import InvalidOperation
+from fram.core.media import MediaType
+from fram.core.operations import (
+    CropParams,
+    CutParams,
+    FpsParams,
+    ResizeMode,
+    ResizeParams,
+    StripAudioParams,
+)
+
+
+def test_actions_for_media_type() -> None:
+    assert "resize" in actions_for(MediaType.IMAGE)
+    assert "cut" not in actions_for(MediaType.IMAGE)
+    assert "cut" in actions_for(MediaType.VIDEO)
+
+
+def test_build_resize_from_tui_input() -> None:
+    operation = build_interactive_operation("resize", MediaType.IMAGE, "320x240 fill")
+
+    assert isinstance(operation.params, ResizeParams)
+    assert operation.params.size.width == 320
+    assert operation.params.mode == ResizeMode.FILL
+
+
+def test_build_crop_from_tui_input() -> None:
+    operation = build_interactive_operation("crop", MediaType.IMAGE, "100x100 top-left")
+
+    assert isinstance(operation.params, CropParams)
+    assert operation.params.anchor.value == "top-left"
+
+
+def test_build_cut_from_tui_input() -> None:
+    operation = build_interactive_operation("cut", MediaType.VIDEO, "5 duration 10")
+
+    assert isinstance(operation.params, CutParams)
+    assert operation.params.start_seconds == 5
+    assert operation.params.duration_seconds == 10
+
+
+def test_build_fps_and_strip_audio_from_tui_input() -> None:
+    fps_operation = build_interactive_operation("fps", MediaType.VIDEO, "24")
+    strip_operation = build_interactive_operation("strip-audio", MediaType.VIDEO, "")
+
+    assert isinstance(fps_operation.params, FpsParams)
+    assert isinstance(strip_operation.params, StripAudioParams)
+
+
+def test_describe_operation() -> None:
+    operation = build_interactive_operation("resize", MediaType.IMAGE, "320x240")
+
+    assert describe_operation(operation) == "resize 320x240 mode=fit"
+
+
+def test_build_interactive_operation_rejects_bad_input() -> None:
+    with pytest.raises(InvalidOperation):
+        build_interactive_operation("fps", MediaType.VIDEO, "fast")

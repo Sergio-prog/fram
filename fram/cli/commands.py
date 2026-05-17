@@ -1,0 +1,118 @@
+from pathlib import Path
+
+from fram.core.media import get_media_info
+from fram.core.operation_factory import (
+    convert as convert_operation,
+)
+from fram.core.operation_factory import (
+    crop as crop_operation,
+)
+from fram.core.operation_factory import (
+    cut as cut_operation,
+)
+from fram.core.operation_factory import (
+    extract_frame as extract_frame_operation,
+)
+from fram.core.operation_factory import (
+    flip as flip_operation,
+)
+from fram.core.operation_factory import (
+    fps as fps_operation,
+)
+from fram.core.operation_factory import (
+    image_compress,
+    video_compress,
+)
+from fram.core.operation_factory import (
+    resize as resize_operation,
+)
+from fram.core.operation_factory import (
+    rotate as rotate_operation,
+)
+from fram.core.operation_factory import (
+    strip_audio as strip_audio_operation,
+)
+from fram.core.operation_factory import (
+    strip_metadata as strip_metadata_operation,
+)
+from fram.core.pipeline import run_pipeline
+from fram.utils.files import default_output_path
+
+
+def media_info(path: Path) -> str:
+    info = get_media_info(path)
+    size_kb = info.size_bytes / 1024
+    return f"{info.media_type.value} {info.suffix} {size_kb:.1f} KB"
+
+
+def resize_file(input_path: Path, size: str, mode: str, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [resize_operation(size, mode)], output)
+
+
+def crop_file(input_path: Path, size: str, anchor: str, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [crop_operation(size, anchor)], output)
+
+
+def compress_image_file(input_path: Path, quality: int, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [image_compress(quality=quality)], output)
+
+
+def compress_video_file(input_path: Path, crf: int, preset: str, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [video_compress(crf=crf, preset=preset)], output)
+
+
+def convert_file(input_path: Path, format_name: str, output_path: Path | None) -> Path:
+    suffix = f".{format_name.lower().lstrip('.')}"
+    output = output_path or default_output_path(input_path, suffix=suffix)
+    return run_pipeline(input_path, [convert_operation(format_name)], output)
+
+
+def rotate_file(input_path: Path, degrees: int, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [rotate_operation(degrees)], output)
+
+
+def flip_file(
+    input_path: Path,
+    horizontal: bool,
+    vertical: bool,
+    output_path: Path | None,
+) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [flip_operation(horizontal, vertical)], output)
+
+
+def strip_metadata_file(input_path: Path, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [strip_metadata_operation()], output)
+
+
+def cut_video_file(
+    input_path: Path,
+    start: str,
+    end: str | None,
+    duration: str | None,
+    output_path: Path | None,
+) -> Path:
+    output = output_path or default_output_path(input_path)
+    operation = cut_operation(start=start, end=end, duration=duration)
+    return run_pipeline(input_path, [operation], output)
+
+
+def fps_video_file(input_path: Path, value: int, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [fps_operation(value)], output)
+
+
+def strip_audio_file(input_path: Path, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [strip_audio_operation()], output)
+
+
+def extract_frame_file(input_path: Path, at: str, output_path: Path | None) -> Path:
+    output = output_path or input_path.with_name(f"{input_path.stem}.frame.png")
+    return run_pipeline(input_path, [extract_frame_operation(at)], output)
