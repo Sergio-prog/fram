@@ -28,7 +28,7 @@ fram input.jpg
 fram input.mp4
 ```
 
-Interactive mode stays compact by default and reveals details with `i`. It also renders a terminal-safe ASCII preview thumbnail for the selected media.
+Interactive mode stays compact by default and reveals details with `i`. It renders real terminal image previews through `textual-image` when the terminal supports image protocols.
 
 Current TUI flow:
 
@@ -44,3 +44,9 @@ Left/Right  move the active edge
 ```
 
 The slider writes the generated `start end` range into the params input when video duration can be read with `ffprobe`.
+
+Preview notes:
+
+- image files are shown directly
+- video files render a temporary preview frame with FFmpeg
+- unsupported terminals may fall back inside `textual-image`

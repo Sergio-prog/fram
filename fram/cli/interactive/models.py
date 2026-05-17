@@ -38,14 +38,16 @@ class InteractiveState:
     output_path: Path | None = None
     duration_seconds: float | None = None
     cut_range: CutRange = field(default_factory=CutRange)
-    preview: str = ""
+    preview_path: Path | None = None
+    preview_error: str = ""
 
     def reset_for_file(
         self,
         file: Path,
         media_type: MediaType,
         duration_seconds: float | None = None,
-        preview: str = "",
+        preview_path: Path | None = None,
+        preview_error: str = "",
     ) -> None:
         self.file = file
         self.media_type = media_type
@@ -53,5 +55,5 @@ class InteractiveState:
         self.output_path = None
         self.duration_seconds = duration_seconds
         self.cut_range = CutRange()
-        self.preview = preview
-
+        self.preview_path = preview_path
+        self.preview_error = preview_error

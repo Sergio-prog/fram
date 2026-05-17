@@ -1,32 +1,33 @@
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
-
-from PIL import Image, ImageOps
 
 from fram.core.media import MediaType
 from fram.utils.process import run_command
 
-ASCII_RAMP = " .:-=+*#%@"
+
+@dataclass(frozen=True)
+class PreviewImage:
+    path: Path | None
+    error: str = ""
+    is_temporary: bool = False
 
 
-def render_preview(path: Path, media_type: MediaType, width: int = 38, height: int = 14) -> str:
+def prepare_preview_image(path: Path, media_type: MediaType) -> PreviewImage:
     try:
         if media_type == MediaType.IMAGE:
-            return render_image_preview(path, width, height)
-        return render_video_preview(path, width, height)
+            return PreviewImage(path=path)
+        return prepare_video_preview(path)
     except Exception as exc:
-        return f"Preview unavailable: {exc}"
+        return PreviewImage(path=None, error=f"Preview unavailable: {exc}")
 
 
-def render_image_preview(path: Path, width: int = 38, height: int = 14) -> str:
-    with Image.open(path) as source:
-        image = ImageOps.exif_transpose(source)
-        return image_to_ascii(image, width, height)
+def prepare_video_preview(path: Path) -> PreviewImage:
+    handle = tempfile.NamedTemporaryFile(prefix="fram-preview-", suffix=".jpg", delete=False)
+    frame_path = Path(handle.name)
+    handle.close()
 
-
-def render_video_preview(path: Path, width: int = 38, height: int = 14) -> str:
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        frame_path = Path(tmp_dir) / "frame.jpg"
+    try:
         run_command(
             [
                 "ffmpeg",
@@ -40,23 +41,13 @@ def render_video_preview(path: Path, width: int = 38, height: int = 14) -> str:
                 str(frame_path),
             ]
         )
-        return render_image_preview(frame_path, width, height)
+    except Exception:
+        frame_path.unlink(missing_ok=True)
+        raise
+
+    return PreviewImage(path=frame_path, is_temporary=True)
 
 
-def image_to_ascii(image: Image.Image, width: int = 38, height: int = 14) -> str:
-    thumbnail = ImageOps.contain(image.convert("L"), (width, height))
-    canvas = Image.new("L", (width, height), color=255)
-    left = (width - thumbnail.width) // 2
-    top = (height - thumbnail.height) // 2
-    canvas.paste(thumbnail, (left, top))
-
-    chars = []
-    for y in range(height):
-        line = []
-        for x in range(width):
-            pixel = canvas.getpixel((x, y))
-            index = min(len(ASCII_RAMP) - 1, pixel * len(ASCII_RAMP) // 256)
-            line.append(ASCII_RAMP[index])
-        chars.append("".join(line).rstrip())
-    return "\n".join(chars)
-
+def cleanup_preview(preview: PreviewImage | None) -> None:
+    if preview and preview.is_temporary and preview.path:
+        preview.path.unlink(missing_ok=True)

@@ -54,6 +54,8 @@ fram image.jpg
 fram video.mp4
 ```
 
+Interactive preview uses terminal image protocols through `textual-image`; videos show an extracted frame.
+
 TUI shortcuts:
 
 - `i`: toggle detailed info

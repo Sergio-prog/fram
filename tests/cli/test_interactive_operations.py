@@ -4,6 +4,7 @@ from fram.cli.interactive.operations import (
     actions_for,
     build_interactive_operation,
     describe_operation,
+    value_presets_for,
 )
 from fram.core.errors import InvalidOperation
 from fram.core.media import MediaType
@@ -21,6 +22,10 @@ def test_actions_for_media_type() -> None:
     assert "resize" in actions_for(MediaType.IMAGE)
     assert "cut" not in actions_for(MediaType.IMAGE)
     assert "cut" in actions_for(MediaType.VIDEO)
+
+
+def test_value_presets_for_cut_uses_slider_value() -> None:
+    assert value_presets_for("cut", "00:01 00:05")[0] == "00:01 00:05"
 
 
 def test_build_resize_from_tui_input() -> None:

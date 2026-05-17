@@ -32,11 +32,27 @@ ACTION_HELP = {
     "strip-audio": "no params; press add/apply",
 }
 
+VALUE_PRESETS = {
+    "resize": ["128x128 fit", "512x512 fit", "1024x1024 fit", "1280x720 exact"],
+    "crop": ["128x128 center", "512x512 center", "1080x1080 center"],
+    "compress": ["82", "70", "50", "23"],
+    "cut": ["slider range", "5 10", "0 duration 10"],
+    "fps": ["24", "30", "60"],
+    "strip-audio": ["apply"],
+}
+
 
 def actions_for(media_type: MediaType | None) -> list[str]:
     if media_type == MediaType.VIDEO:
         return VIDEO_ACTIONS
     return IMAGE_ACTIONS
+
+
+def value_presets_for(action: str, slider_value: str = "") -> list[str]:
+    values = VALUE_PRESETS[action].copy()
+    if action == "cut" and slider_value:
+        values[0] = slider_value
+    return values
 
 
 def build_interactive_operation(
@@ -115,4 +131,3 @@ def _required(value: str, message: str) -> str:
     if not value:
         raise InvalidOperation(message)
     return value
-

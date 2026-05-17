@@ -4,8 +4,9 @@ from fram.cli.interactive.models import CutRange
 
 
 class ChoiceItem(ListItem):
-    def __init__(self, label: str, value: str) -> None:
+    def __init__(self, label: str, value: str, kind: str = "choice") -> None:
         self.value = value
+        self.kind = kind
         super().__init__(Label(label))
 
 

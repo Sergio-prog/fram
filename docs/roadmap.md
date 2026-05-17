@@ -20,7 +20,6 @@
 
 - SVG rasterization
 - target-file-size compression
-- preview thumbnails
+- richer preview controls: zoom, frame seek, before/after comparison
 - job queue for API/bot
 - deployment examples
-

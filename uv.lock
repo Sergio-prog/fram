@@ -263,6 +263,7 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "python-multipart" },
     { name = "textual" },
+    { name = "textual-image", extra = ["textual"] },
     { name = "typer" },
     { name = "uvicorn" },
 ]
@@ -283,6 +284,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.2" },
     { name = "python-multipart", specifier = ">=0.0.9" },
     { name = "textual", specifier = ">=0.58" },
+    { name = "textual-image", extras = ["textual"], specifier = ">=0.12" },
     { name = "typer", specifier = ">=0.12" },
     { name = "uvicorn", specifier = ">=0.30" },
 ]
@@ -1084,6 +1086,24 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/1c/b3/b62658f6cf808d28e4d16a07509728a7b17824f55a6d3533f017fd4566b0/textual-8.2.6.tar.gz", hash = "sha256:cef3714498a120a99278b98d4c165c278844e73db50f1db039aaabd89f2d1b63", size = 1856990, upload-time = "2026-05-13T09:56:12.281Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b8/b4/c2b876f445e52522824cb900f2c7db3a7c24f89d20449ef278b4195d0ecb/textual-8.2.6-py3-none-any.whl", hash = "sha256:17c92bec7ff1617bd7db2a3d9734b0c3b7d2c274c67d5eba94371ea2f99a63fd", size = 729855, upload-time = "2026-05-13T09:56:14.687Z" },
+]
+
+[[package]]
+name = "textual-image"
+version = "0.12.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pillow" },
+    { name = "rich" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c2/e7/c82ea0604874b6d51d5717a0911061ae5810e36dad2e4d2b11fa7d54cdaa/textual_image-0.12.0.tar.gz", hash = "sha256:fdd0b5ff9c8a99740bc360a99ce014d563fa97d07a5b49b472470809f57c0a74", size = 116403, upload-time = "2026-04-12T17:37:44.696Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/67/2c/38ac586a3834a3bd8cbcf0c8ea1ae23bf68b9cc13b96a67f47a825479dd3/textual_image-0.12.0-py3-none-any.whl", hash = "sha256:0b13f62fe6a29f4ed6dfd641f2779ffe92dde41f16163fa1de69158477aa50aa", size = 115626, upload-time = "2026-04-12T17:37:41.238Z" },
+]
+
+[package.optional-dependencies]
+textual = [
+    { name = "textual" },
 ]
 
 [[package]]
