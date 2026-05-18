@@ -37,6 +37,7 @@ class InteractiveState:
     show_details: bool = False
     output_path: Path | None = None
     duration_seconds: float | None = None
+    resolution: str | None = None
     cut_range: CutRange = field(default_factory=CutRange)
     preview_path: Path | None = None
     preview_error: str = ""
@@ -46,6 +47,7 @@ class InteractiveState:
         file: Path,
         media_type: MediaType,
         duration_seconds: float | None = None,
+        resolution: str | None = None,
         preview_path: Path | None = None,
         preview_error: str = "",
     ) -> None:
@@ -54,6 +56,7 @@ class InteractiveState:
         self.operations.clear()
         self.output_path = None
         self.duration_seconds = duration_seconds
+        self.resolution = resolution
         self.cut_range = CutRange()
         self.preview_path = preview_path
         self.preview_error = preview_error

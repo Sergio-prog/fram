@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fram.core.media import get_media_info
+from fram.core.metadata import collect_media_metadata
 from fram.core.operation_factory import (
     convert as convert_operation,
 )
@@ -40,9 +40,7 @@ from fram.utils.files import default_output_path
 
 
 def media_info(path: Path) -> str:
-    info = get_media_info(path)
-    size_kb = info.size_bytes / 1024
-    return f"{info.media_type.value} {info.suffix} {size_kb:.1f} KB"
+    return collect_media_metadata(path).as_text()
 
 
 def resize_file(input_path: Path, size: str, mode: str, output_path: Path | None) -> Path:
