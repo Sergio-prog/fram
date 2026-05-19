@@ -27,3 +27,26 @@ Auth:
 - `file`: uploaded media
 - `operations`: JSON array
 - `output_suffix`: optional suffix like `.webp` or `.mp4`
+
+Operation names accepted by the API:
+
+```text
+resize
+crop
+compress-image
+compress-video
+convert
+rotate
+flip
+strip-metadata
+blur
+grayscale
+cut
+fps
+strip-audio
+extract-audio
+extract-frame
+gif
+speed
+reverse
+```

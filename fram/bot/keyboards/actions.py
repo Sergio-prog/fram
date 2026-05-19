@@ -7,14 +7,50 @@ ACTION_LABELS = {
     "cut": "🎞 Cut",
     "fps": "🎚 FPS",
     "strip-audio": "🔇 Strip audio",
+    "strip-metadata": "🧹 Strip metadata",
+    "blur": "🌫 Blur",
+    "grayscale": "⚫ Grayscale",
+    "convert": "🔁 Convert",
+    "rotate": "↻ Rotate",
+    "flip": "↔️ Flip",
+    "extract-audio": "🎧 Audio",
     "extract-frame": "🖼 Frame",
+    "gif": "GIF",
+    "speed": "⏩ Speed",
+    "reverse": "↩️ Reverse",
 }
 
 
 def media_actions_keyboard(is_video: bool) -> InlineKeyboardMarkup:
-    actions = ["resize", "crop", "compress"]
+    actions = [
+        "resize",
+        "crop",
+        "compress",
+        "convert",
+        "rotate",
+        "flip",
+        "strip-metadata",
+        "blur",
+        "grayscale",
+    ]
     if is_video:
-        actions = ["cut", "resize", "crop", "fps", "compress", "strip-audio", "extract-frame"]
+        actions = [
+            "cut",
+            "resize",
+            "crop",
+            "fps",
+            "compress",
+            "convert",
+            "strip-audio",
+            "strip-metadata",
+            "blur",
+            "grayscale",
+            "extract-audio",
+            "extract-frame",
+            "gif",
+            "speed",
+            "reverse",
+        ]
     buttons = [
         [InlineKeyboardButton(text=ACTION_LABELS[action], callback_data=f"action:{action}")]
         for action in actions

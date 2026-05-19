@@ -1,14 +1,16 @@
 from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageFilter, ImageOps
 
 from fram.core.errors import InvalidOperation, UnsupportedFormat
 from fram.core.media import VECTOR_EXTENSIONS
 from fram.core.operations import (
     Anchor,
+    BlurParams,
     ConvertParams,
     CropParams,
     FlipParams,
+    GrayscaleParams,
     ImageCompressParams,
     Operation,
     OperationName,
@@ -81,6 +83,12 @@ class ImageProcessor(MediaProcessor):
             case OperationName.STRIP_METADATA:
                 self.expect(operation.params, StripMetadataParams)
                 return image.copy(), None, {}
+            case OperationName.BLUR:
+                params = self.expect(operation.params, BlurParams)
+                return image.filter(ImageFilter.GaussianBlur(params.radius)), None, {}
+            case OperationName.GRAYSCALE:
+                self.expect(operation.params, GrayscaleParams)
+                return ImageOps.grayscale(image), None, {}
             case _:
                 raise InvalidOperation(f"Operation {operation.name} is not valid for images.")
 

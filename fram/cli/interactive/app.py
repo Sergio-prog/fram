@@ -20,9 +20,9 @@ from fram.cli.interactive.widgets import ChoiceItem, CutRangeSlider
 from fram.core.errors import FramError
 from fram.core.media import MediaType, detect_media_type, get_media_info
 from fram.core.metadata import collect_media_metadata
+from fram.core.output import default_output_for_operations
 from fram.core.pipeline import run_pipeline
 from fram.core.probe import probe_duration_seconds
-from fram.utils.files import default_output_path
 from fram.utils.timecodes import format_seconds
 
 
@@ -154,7 +154,11 @@ class FramInteractiveApp(App[None]):
             return
 
         output_value = self.query_one("#output", Input).value.strip()
-        output_path = Path(output_value) if output_value else default_output_path(self.state.file)
+        output_path = (
+            Path(output_value)
+            if output_value
+            else default_output_for_operations(self.state.file, self.state.operations)
+        )
 
         try:
             result = run_pipeline(self.state.file, self.state.operations, output_path)

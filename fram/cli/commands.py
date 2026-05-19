@@ -2,6 +2,9 @@ from pathlib import Path
 
 from fram.core.metadata import collect_media_metadata
 from fram.core.operation_factory import (
+    blur as blur_operation,
+)
+from fram.core.operation_factory import (
     convert as convert_operation,
 )
 from fram.core.operation_factory import (
@@ -9,6 +12,9 @@ from fram.core.operation_factory import (
 )
 from fram.core.operation_factory import (
     cut as cut_operation,
+)
+from fram.core.operation_factory import (
+    extract_audio as extract_audio_operation,
 )
 from fram.core.operation_factory import (
     extract_frame as extract_frame_operation,
@@ -20,6 +26,12 @@ from fram.core.operation_factory import (
     fps as fps_operation,
 )
 from fram.core.operation_factory import (
+    gif as gif_operation,
+)
+from fram.core.operation_factory import (
+    grayscale as grayscale_operation,
+)
+from fram.core.operation_factory import (
     image_compress,
     video_compress,
 )
@@ -27,7 +39,13 @@ from fram.core.operation_factory import (
     resize as resize_operation,
 )
 from fram.core.operation_factory import (
+    reverse as reverse_operation,
+)
+from fram.core.operation_factory import (
     rotate as rotate_operation,
+)
+from fram.core.operation_factory import (
+    speed as speed_operation,
 )
 from fram.core.operation_factory import (
     strip_audio as strip_audio_operation,
@@ -35,6 +53,7 @@ from fram.core.operation_factory import (
 from fram.core.operation_factory import (
     strip_metadata as strip_metadata_operation,
 )
+from fram.core.output import default_output_for_operations
 from fram.core.pipeline import run_pipeline
 from fram.utils.files import default_output_path
 
@@ -89,6 +108,16 @@ def strip_metadata_file(input_path: Path, output_path: Path | None) -> Path:
     return run_pipeline(input_path, [strip_metadata_operation()], output)
 
 
+def blur_file(input_path: Path, radius: float, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [blur_operation(radius)], output)
+
+
+def grayscale_file(input_path: Path, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [grayscale_operation()], output)
+
+
 def cut_video_file(
     input_path: Path,
     start: str,
@@ -111,6 +140,28 @@ def strip_audio_file(input_path: Path, output_path: Path | None) -> Path:
     return run_pipeline(input_path, [strip_audio_operation()], output)
 
 
+def extract_audio_file(input_path: Path, output_path: Path | None) -> Path:
+    operation = extract_audio_operation()
+    output = output_path or default_output_for_operations(input_path, [operation])
+    return run_pipeline(input_path, [operation], output)
+
+
 def extract_frame_file(input_path: Path, at: str, output_path: Path | None) -> Path:
     output = output_path or input_path.with_name(f"{input_path.stem}.frame.png")
     return run_pipeline(input_path, [extract_frame_operation(at)], output)
+
+
+def gif_file(input_path: Path, fps: int, width: int | None, output_path: Path | None) -> Path:
+    operation = gif_operation(fps, width)
+    output = output_path or default_output_for_operations(input_path, [operation])
+    return run_pipeline(input_path, [operation], output)
+
+
+def speed_video_file(input_path: Path, factor: float, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [speed_operation(factor)], output)
+
+
+def reverse_video_file(input_path: Path, include_audio: bool, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [reverse_operation(include_audio)], output)

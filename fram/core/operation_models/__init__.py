@@ -1,26 +1,25 @@
-from fram.core.operation_models import (
+from fram.core.operation_models.common import Operation, OperationName, OperationParams
+from fram.core.operation_models.image import (
     Anchor,
     BlurParams,
-    ConvertParams,
     CropParams,
+    FlipParams,
+    GrayscaleParams,
+    ImageCompressParams,
+    ResizeMode,
+    ResizeParams,
+    RotateParams,
+)
+from fram.core.operation_models.shared import ConvertParams, StripMetadataParams
+from fram.core.operation_models.video import (
     CutParams,
     ExtractAudioParams,
     ExtractFrameParams,
-    FlipParams,
     FpsParams,
     GifParams,
-    GrayscaleParams,
-    ImageCompressParams,
-    Operation,
-    OperationName,
-    OperationParams,
-    ResizeMode,
-    ResizeParams,
     ReverseParams,
-    RotateParams,
     SpeedParams,
     StripAudioParams,
-    StripMetadataParams,
     VideoCompressParams,
 )
 

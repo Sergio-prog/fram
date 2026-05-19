@@ -10,6 +10,8 @@ from fram.api.schemas import ProcessResult, operation_specs_adapter
 from fram.api.settings import settings
 from fram.core.errors import FramError
 from fram.core.media import get_media_info
+from fram.core.operations import Operation
+from fram.core.output import default_output_for_operations
 from fram.core.pipeline import run_pipeline
 
 router = APIRouter(dependencies=[Depends(require_token)])
@@ -41,10 +43,11 @@ async def process_media(
     output_suffix: OutputSuffixForm = None,
 ) -> ProcessResult:
     input_path = await _save_upload(file)
-    output_path = _output_path(input_path, output_suffix)
     try:
         specs = operation_specs_adapter.validate_python(json.loads(operations))
-        result = run_pipeline(input_path, [spec.to_operation() for spec in specs], output_path)
+        typed_operations = [spec.to_operation() for spec in specs]
+        output_path = _output_path(input_path, output_suffix, typed_operations)
+        result = run_pipeline(input_path, typed_operations, output_path)
     except (FramError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return ProcessResult(output_path=result)
@@ -58,8 +61,10 @@ async def _save_upload(file: UploadFile) -> Path:
     return path
 
 
-def _output_path(input_path: Path, output_suffix: str | None) -> Path:
-    suffix = output_suffix or input_path.suffix
+def _output_path(input_path: Path, output_suffix: str | None, operations: list[Operation]) -> Path:
+    suffix = output_suffix
+    if suffix is None:
+        return default_output_for_operations(input_path, operations)
     if suffix and not suffix.startswith("."):
         suffix = f".{suffix}"
     return input_path.with_name(f"{input_path.stem}.out{suffix}")

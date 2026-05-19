@@ -1,7 +1,19 @@
 import pytest
 
 from fram.core.errors import InvalidOperation
-from fram.core.operation_factory import crop, cut, flip, fps, resize, strip_metadata
+from fram.core.operation_factory import (
+    blur,
+    crop,
+    cut,
+    flip,
+    fps,
+    gif,
+    grayscale,
+    resize,
+    reverse,
+    speed,
+    strip_metadata,
+)
 from fram.core.operations import (
     Anchor,
     CropParams,
@@ -75,3 +87,16 @@ def test_strip_metadata_uses_image_metadata_params() -> None:
     assert operation.name == OperationName.STRIP_METADATA
     assert isinstance(operation.params, StripMetadataParams)
 
+
+def test_visual_effect_operations_build_typed_params() -> None:
+    assert blur(3).name == OperationName.BLUR
+    assert grayscale().name == OperationName.GRAYSCALE
+
+
+def test_video_utility_operations_build_typed_params() -> None:
+    assert gif(fps_value=12, width=480).name == OperationName.GIF
+    assert speed(2).name == OperationName.SPEED
+    assert reverse().name == OperationName.REVERSE
+
+    with pytest.raises(InvalidOperation, match="greater than zero"):
+        speed(0)

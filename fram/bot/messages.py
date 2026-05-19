@@ -30,7 +30,17 @@ def action_prompt(action: str, media_type: MediaType) -> str:
         "cut": "🎞 Send range: <code>00:00:05 00:00:12</code> or <code>5 duration 10</code>",
         "fps": "🎚 Send FPS value, for example: <code>24</code>",
         "strip-audio": "🔇 Tap Apply to remove audio.",
+        "strip-metadata": "🧹 Tap Apply to remove metadata.",
+        "blur": "🌫 Send blur radius, for example: <code>2</code>",
+        "grayscale": "⚫ Tap Apply to convert to grayscale.",
+        "convert": "🔁 Send output format, for example: <code>webp</code> or <code>mp4</code>",
+        "rotate": "↻ Send clockwise degrees, for example: <code>90</code>",
+        "flip": "↔️ Send <code>horizontal</code>, <code>vertical</code>, or <code>both</code>",
+        "extract-audio": "🎧 Tap Apply to extract audio.",
         "extract-frame": "🖼 Send timestamp, for example: <code>00:00:05</code>",
+        "gif": "GIF: send FPS and optional width, for example: <code>12 480</code>",
+        "speed": "⏩ Send speed factor, for example: <code>2</code> or <code>0.5</code>",
+        "reverse": "↩️ Tap Apply to reverse video.",
     }
     return prompts[action]
 

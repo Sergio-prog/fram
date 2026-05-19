@@ -19,10 +19,16 @@ COMMAND_NAMES = {
     "rotate",
     "flip",
     "strip-metadata",
+    "blur",
+    "grayscale",
     "cut",
     "fps",
     "strip-audio",
+    "extract-audio",
     "extract-frame",
+    "gif",
+    "speed",
+    "reverse",
 }
 
 app = typer.Typer(
@@ -125,6 +131,23 @@ def strip_metadata(
 
 
 @app.command()
+def blur(
+    file: Path,
+    radius: Annotated[float, typer.Option("--radius", "-r")] = 2.0,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.blur_file(file, radius, output))
+
+
+@app.command()
+def grayscale(
+    file: Path,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.grayscale_file(file, output))
+
+
+@app.command()
 def cut(
     file: Path,
     start: Annotated[str, typer.Option("--start", "-s")],
@@ -152,6 +175,14 @@ def strip_audio(
     _print_result(lambda: commands.strip_audio_file(file, output))
 
 
+@app.command("extract-audio")
+def extract_audio(
+    file: Path,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.extract_audio_file(file, output))
+
+
 @app.command("extract-frame")
 def extract_frame(
     file: Path,
@@ -159,6 +190,34 @@ def extract_frame(
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
     _print_result(lambda: commands.extract_frame_file(file, at, output))
+
+
+@app.command()
+def gif(
+    file: Path,
+    fps: Annotated[int, typer.Option("--fps")] = 12,
+    width: Annotated[int | None, typer.Option("--width")] = None,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.gif_file(file, fps, width, output))
+
+
+@app.command()
+def speed(
+    file: Path,
+    factor: Annotated[float, typer.Argument(help="Speed factor, e.g. 2 or 0.5.")],
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.speed_video_file(file, factor, output))
+
+
+@app.command()
+def reverse(
+    file: Path,
+    no_audio: Annotated[bool, typer.Option("--no-audio")] = False,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.reverse_video_file(file, not no_audio, output))
 
 
 def _print_result(action: object) -> None:

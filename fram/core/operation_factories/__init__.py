@@ -1,21 +1,22 @@
-from fram.core.operation_factories import (
+from fram.core.operation_factories.image import (
     blur,
-    convert,
     crop,
-    cut,
-    extract_audio,
-    extract_frame,
     flip,
-    fps,
-    gif,
     grayscale,
     image_compress,
     resize,
-    reverse,
     rotate,
+)
+from fram.core.operation_factories.shared import convert, strip_metadata
+from fram.core.operation_factories.video import (
+    cut,
+    extract_audio,
+    extract_frame,
+    fps,
+    gif,
+    reverse,
     speed,
     strip_audio,
-    strip_metadata,
     video_compress,
 )
 

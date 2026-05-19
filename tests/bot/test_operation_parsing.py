@@ -6,11 +6,16 @@ from fram.core.media import MediaType
 from fram.core.operations import (
     CropParams,
     CutParams,
+    ExtractAudioParams,
     FpsParams,
+    GifParams,
+    GrayscaleParams,
     ImageCompressParams,
     OperationName,
     ResizeParams,
+    SpeedParams,
     StripAudioParams,
+    StripMetadataParams,
     VideoCompressParams,
 )
 
@@ -63,6 +68,22 @@ def test_build_strip_audio_operation_without_params() -> None:
     operation = build_operation("strip-audio", MediaType.VIDEO)
 
     assert isinstance(operation.params, StripAudioParams)
+
+
+def test_build_new_no_param_operations_from_bot_input() -> None:
+    strip_metadata = build_operation("strip-metadata", MediaType.IMAGE)
+
+    assert isinstance(strip_metadata.params, StripMetadataParams)
+    assert isinstance(build_operation("grayscale", MediaType.VIDEO).params, GrayscaleParams)
+    assert isinstance(build_operation("extract-audio", MediaType.VIDEO).params, ExtractAudioParams)
+
+
+def test_build_new_video_operations_from_bot_input() -> None:
+    gif_operation = build_operation("gif", MediaType.VIDEO, "12 480")
+    speed_operation = build_operation("speed", MediaType.VIDEO, "2")
+
+    assert isinstance(gif_operation.params, GifParams)
+    assert isinstance(speed_operation.params, SpeedParams)
 
 
 def test_build_operation_rejects_bad_input() -> None:

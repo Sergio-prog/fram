@@ -8,8 +8,15 @@ fram crop input.jpg 128x128 --anchor center -o output.jpg
 fram convert input.png webp -o output.webp
 fram rotate input.jpg 90 -o rotated.jpg
 fram flip input.jpg --horizontal -o flipped.jpg
+fram strip-metadata input.jpg -o clean.jpg
+fram blur input.jpg --radius 2 -o blurred.jpg
+fram grayscale input.mp4 -o gray.mp4
 fram cut input.mp4 --start 5 --duration 10 -o output.mp4
 fram strip-audio input.mp4 -o silent.mp4
+fram extract-audio input.mp4 -o audio.m4a
+fram gif input.mp4 --fps 12 --width 480 -o clip.gif
+fram speed input.mp4 2 -o fast.mp4
+fram reverse input.mp4 -o reversed.mp4
 ```
 
 Help:

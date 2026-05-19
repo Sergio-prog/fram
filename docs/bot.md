@@ -32,3 +32,7 @@ Message copy includes the author channel link:
 ```
 
 Current gap: only one operation is applied per bot request. Multi-step bot pipelines can be added later.
+
+The bot exposes the same core operation family where a short text prompt can represent params.
+Generated outputs such as extracted frames, extracted audio, converted files, and GIFs choose a matching
+default file suffix.
