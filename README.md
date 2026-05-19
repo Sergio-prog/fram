@@ -1,4 +1,4 @@
-# Fram
+# 🖼️ Fram
 
 A compact media workshop for your terminal, API, and Telegram.
 
