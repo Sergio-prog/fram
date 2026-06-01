@@ -1,7 +1,8 @@
 from pathlib import Path
 
+from textual import events
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal, Vertical
+from textual.containers import Container, Horizontal, VerticalScroll
 from textual.widgets import Button, Footer, Header, Input, ListView, Static
 from textual_image.widget import Image as TerminalImage
 
@@ -27,20 +28,54 @@ from fram.utils.timecodes import format_seconds
 
 
 class FramInteractiveApp(App[None]):
+    NO_VALUE_ACTIONS = {"strip-audio", "strip-metadata", "grayscale", "extract-audio"}
+
     CSS = """
     Screen { padding: 1 2; }
     #main { height: 1fr; }
     #files, #actions { width: 30; border: solid $accent; padding: 1; }
-    #workspace { width: 1fr; padding: 0 1; }
-    #summary, #operations, #help, #presets { padding: 0 1; }
-    #preview_image, #preview_text {
+    #workspace {
+        width: 1fr;
+        height: 1fr;
+        overflow-y: auto;
+        padding: 0 1;
+    }
+    #preview-row { height: 20; }
+    #preview-pane {
         border: solid $accent;
+        height: 20;
+        width: 1fr;
+    }
+    #summary {
+        border: solid $accent;
+        color: $text-muted;
+        margin: 0 0 0 1;
+        padding: 0 1;
+        width: 38;
+    }
+    #operations { padding: 0 1; }
+    #pipeline-toggle { margin: 1 0 0 0; width: 100%; }
+    #operations {
+        border-left: solid $accent;
+        color: $text-muted;
+        margin: 0 0 1 0;
+    }
+    #preset-suggestions {
+        border: tall $accent;
+        height: auto;
+        max-height: 7;
+        margin: 0 0 1 0;
+    }
+    #preview_image, #preview_text {
         padding: 0 1;
         width: auto;
-        height: auto;
-        max-height: 18;
+        height: 100%;
     }
-    #params, #output { margin: 1 0; }
+    .field-label {
+        color: $text-muted;
+        margin: 1 0 0 0;
+    }
+    #params, #output { margin: 0 0 1 0; }
     Button { margin-right: 1; }
     """
 
@@ -62,6 +97,8 @@ class FramInteractiveApp(App[None]):
         self.initial_file = file
         self.current_dir = Path.cwd()
         self.selected_action: str | None = None
+        self.pipeline_open = False
+        self.show_info = True
         self.cut_slider = CutRangeSlider()
         self.current_preview: PreviewImage | None = None
 
@@ -70,15 +107,19 @@ class FramInteractiveApp(App[None]):
         with Horizontal(id="main"):
             yield ListView(id="files")
             yield ListView(id="actions")
-            with Vertical(id="workspace"):
-                yield Static(id="summary")
-                yield TerminalImage(id="preview_image")
-                yield Static(id="preview_text")
+            with VerticalScroll(id="workspace", can_focus=True):
+                with Horizontal(id="preview-row"):
+                    with Container(id="preview-pane"):
+                        yield TerminalImage(id="preview_image")
+                        yield Static(id="preview_text")
+                    yield Static(id="summary")
+                yield Button("Pipeline (0 operations) ▸", id="pipeline-toggle")
                 yield Static(id="operations")
-                yield Static(id="help")
                 yield self.cut_slider
-                yield Static(id="presets")
+                yield Static("Value for action", classes="field-label")
                 yield Input(id="params", placeholder="Custom value, then Enter")
+                yield ListView(id="preset-suggestions")
+                yield Static("Output", classes="field-label")
                 yield Input(id="output", placeholder="Output path, blank means *.fram.*")
                 with Horizontal():
                     yield Button("Run", id="run", variant="success")
@@ -106,19 +147,43 @@ class FramInteractiveApp(App[None]):
         if event.list_view.id == "actions":
             await self._select_action(item.value)
             return
+        if event.list_view.id == "preset-suggestions":
+            self._use_preset(item.value)
+            return
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "run":
             self.action_run_pipeline()
         elif event.button.id == "drop":
             self.action_drop_last()
+        elif event.button.id == "pipeline-toggle":
+            self.pipeline_open = not self.pipeline_open
+            self._refresh()
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        if event.input.id == "params":
+            self._refresh_preset_suggestions(event.value)
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id == "params":
             self._add_operation(event.value)
 
+    def on_key(self, event: events.Key) -> None:
+        if event.key not in {"down", "up"}:
+            return
+        if self.focused is not self.query_one("#params", Input):
+            return
+
+        suggestions = self.query_one("#preset-suggestions", ListView)
+        if not suggestions.display or not suggestions.children:
+            return
+
+        suggestions.index = 0 if event.key == "down" else len(suggestions.children) - 1
+        suggestions.focus()
+        event.stop()
+
     def action_toggle_details(self) -> None:
-        self.state.show_details = not self.state.show_details
+        self.show_info = not self.show_info
         self._refresh()
 
     def action_focus_files(self) -> None:
@@ -214,6 +279,8 @@ class FramInteractiveApp(App[None]):
             preview_error=self.current_preview.error,
         )
         self.selected_action = None
+        self.query_one("#params", Input).value = ""
+        self.query_one("#params", Input).placeholder = ""
         self._load_actions(media_type)
         self.query_one("#actions", ListView).focus()
         self._refresh()
@@ -223,14 +290,19 @@ class FramInteractiveApp(App[None]):
         action_list.clear()
         for action in actions_for(media_type):
             action_list.append(ChoiceItem(ACTION_LABELS[action], action))
-        self.query_one("#presets", Static).update("")
+        self._refresh_preset_suggestions("")
 
     async def _select_action(self, action: str) -> None:
         self.selected_action = action
+        if action in self.NO_VALUE_ACTIONS:
+            self._add_operation("")
+            return
+
         self.query_one("#params", Input).placeholder = ACTION_HELP[action]
         if action == "cut":
             self._sync_cut_input()
         self.query_one("#params", Input).focus()
+        self._refresh_preset_suggestions(self.query_one("#params", Input).value)
         self._refresh()
 
     def _add_operation(self, raw_value: str) -> None:
@@ -253,7 +325,11 @@ class FramInteractiveApp(App[None]):
             return
 
         self.state.operations.append(operation)
+        self.selected_action = None
         self.query_one("#params", Input).value = ""
+        self.query_one("#params", Input).placeholder = ""
+        self._refresh_preset_suggestions("")
+        self.query_one("#actions", ListView).focus()
         self._refresh()
 
     def _move_cut(self, delta: int) -> None:
@@ -270,10 +346,12 @@ class FramInteractiveApp(App[None]):
 
     def _refresh(self) -> None:
         self.query_one("#summary", Static).update(self._summary_text())
+        self.query_one("#summary", Static).display = self.show_info
         self._refresh_preview()
+        self.query_one("#pipeline-toggle", Button).label = self._pipeline_label()
         self.query_one("#operations", Static).update(self._operations_text())
-        self.query_one("#help", Static).update(self._help_text())
-        self.query_one("#presets", Static).update(self._presets_text())
+        self.query_one("#operations", Static).display = self.pipeline_open
+        self._refresh_preset_suggestions(self.query_one("#params", Input).value)
         self._refresh_cut_slider()
 
     def _refresh_preview(self) -> None:
@@ -305,16 +383,13 @@ class FramInteractiveApp(App[None]):
         lines = [
             f"Selected: {self.state.file.name}",
             f"{info.media_type.value} {info.suffix} {size_kb:.1f} KB",
-            "Choose action and enter values. File browser remains active.",
         ]
         if self.state.resolution:
             lines.insert(2, f"resolution {self.state.resolution}")
         if self.state.output_path:
             lines.append(f"last output: {self.state.output_path}")
-        if self.state.show_details:
-            lines.append(f"path: {self.state.file}")
-            if self.state.duration_seconds is not None:
-                lines.append(f"duration: {format_seconds(self.state.duration_seconds)}")
+        if self.state.duration_seconds is not None:
+            lines.append(f"duration: {format_seconds(self.state.duration_seconds)}")
         return "\n".join(lines)
 
     def _preview_text(self) -> str:
@@ -324,38 +399,46 @@ class FramInteractiveApp(App[None]):
 
     def _operations_text(self) -> str:
         if not self.state.operations:
-            return "Pipeline: no operations yet."
-        lines = ["Pipeline:"]
-        lines.extend(
+            return "No operations yet."
+        lines = [
             f"{index}. {describe_operation(operation)}"
             for index, operation in enumerate(self.state.operations, start=1)
-        )
+        ]
         return "\n".join(lines)
 
-    def _help_text(self) -> str:
-        if self.state.file is None:
-            return "Browse with arrows and Enter. Direct file mode: `fram image.png`."
-        if self.selected_action is None:
-            return "Pick action. Presets appear above the custom input."
-        if self.selected_action == "cut":
-            return (
-                f"{self.selected_action}: {ACTION_HELP[self.selected_action]}. "
-                "Tab switches edge; left/right moves it."
-            )
-        return f"{self.selected_action}: {ACTION_HELP[self.selected_action]}"
+    def _pipeline_label(self) -> str:
+        count = len(self.state.operations)
+        marker = "▾" if self.pipeline_open else "▸"
+        noun = "operation" if count == 1 else "operations"
+        return f"Pipeline ({count} {noun}) {marker}"
 
-    def _presets_text(self) -> str:
+    def _preset_values(self, query: str = "") -> list[str]:
         if self.selected_action is None:
-            return ""
+            return []
 
         slider_value = self.state.cut_range.to_input_value(self.state.duration_seconds)
         values = value_presets_for(self.selected_action, slider_value)
-        lines = ["Presets:"]
+        return [
+            value
+            for value in values
+            if value != "slider range" and query.lower() in value.lower()
+        ]
+
+    def _refresh_preset_suggestions(self, query: str) -> None:
+        suggestions = self.query_one("#preset-suggestions", ListView)
+        suggestions.clear()
+        values = self._preset_values(query)
+        suggestions.display = bool(values)
         for value in values:
-            if value == "slider range" and not slider_value:
-                continue
-            lines.append(f"• {value}")
-        return "\n".join(lines)
+            suggestions.append(ChoiceItem(value, value, kind="preset"))
+
+    def _use_preset(self, value: str) -> None:
+        params = self.query_one("#params", Input)
+        if value == "apply":
+            self._add_operation("")
+            return
+        params.value = value
+        params.focus()
 
     def _duration_label(self) -> str:
         if self.state.duration_seconds is None:
