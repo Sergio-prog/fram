@@ -1,41 +1,74 @@
 # 🖼️ Fram
 
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![CLI: Typer](https://img.shields.io/badge/CLI-Typer-111827)](https://typer.tiangolo.com/)
+[![Media: FFmpeg](https://img.shields.io/badge/media-FFmpeg-007808?logo=ffmpeg&logoColor=white)](https://ffmpeg.org/)
+
 A compact media workshop for your terminal, API, and Telegram.
 
-Fram crops, resizes, compresses, and converts images; cuts, resizes, crops, compresses, and changes FPS for videos. The CLI, FastAPI app, and Telegram bot use the same typed processing core.
+Fram crops, resizes, compresses, and converts images; cuts, resizes, crops, compresses, changes FPS, strips audio, extracts frames, and makes GIFs from videos. The CLI, FastAPI app, and Telegram bot use the same typed processing core.
 
-## Status
+> Early hobby project. The strict CLI is the main focus right now; the API, Telegram bot flow, and basic interactive TUI also exist.
 
-Early hobby project. The strict CLI, API, Telegram bot flow, and basic interactive TUI exist.
+## Highlights
+
+- Scriptable CLI commands for image and video edits.
+- Interactive terminal UI for quick manual workflows.
+- Shared core used by CLI, API, and Telegram bot.
+- FFmpeg-backed video processing with Pillow-backed image operations.
+- Small codebase intended to stay hackable.
 
 ## Install
 
-```bash
-uv sync
-```
-
-System dependency:
+Fram requires Python 3.11+ and FFmpeg.
 
 ```bash
 ffmpeg -version
 ```
 
-## CLI
+Install the global CLI with `uv tool install` or `pipx` through the installer:
 
-Strict commands:
+```bash
+curl -LsSf https://raw.githubusercontent.com/Sergio-prog/fram/main/scripts/install.sh | sh
+```
+
+Manual install with `uv tool`:
+
+```bash
+uv tool install git+https://github.com/Sergio-prog/fram.git
+```
+
+Manual install with `pipx`:
+
+```bash
+pipx install git+https://github.com/Sergio-prog/fram.git
+```
+
+From a local checkout:
+
+```bash
+scripts/install.sh
+uv tool install .
+pipx install .
+```
+
+For development:
+
+```bash
+uv sync
+uv run fram --help
+```
+
+## Quick Start
 
 ```bash
 fram info image.jpg
 fram resize image.jpg 128x128 -o image-small.jpg
-fram crop image.jpg 128x128 --anchor center -o avatar.jpg
-fram compress-image image.jpg --quality 80 -o compressed.webp
 fram convert image.png webp -o image.webp
-fram rotate image.jpg 90 -o rotated.jpg
-fram flip image.jpg --horizontal -o flipped.jpg
 
 fram cut video.mp4 --start 00:00:05 --end 00:00:12 -o clip.mp4
-fram fps video.mp4 24 -o video-24fps.mp4
-fram compress-video video.mp4 --crf 24 --preset medium -o smaller.mp4
+fram gif video.mp4 --fps 12 --width 480 -o clip.gif
 fram strip-audio video.mp4 -o silent.mp4
 ```
 
@@ -46,7 +79,39 @@ fram resize --help
 fram help resize
 ```
 
-Interactive mode:
+## CLI Commands
+
+### Images
+
+```bash
+fram resize image.jpg 128x128 -o image-small.jpg
+fram crop image.jpg 128x128 --anchor center -o avatar.jpg
+fram compress-image image.jpg --quality 80 -o compressed.webp
+fram convert image.png webp -o image.webp
+fram rotate image.jpg 90 -o rotated.jpg
+fram flip image.jpg --horizontal -o flipped.jpg
+fram strip-metadata image.jpg -o clean.jpg
+fram blur image.jpg --radius 2 -o blurred.jpg
+fram grayscale image.jpg -o gray.jpg
+```
+
+### Videos
+
+```bash
+fram cut video.mp4 --start 00:00:05 --end 00:00:12 -o clip.mp4
+fram cut video.mp4 --start 5 --duration 10 -o clip.mp4
+fram fps video.mp4 24 -o video-24fps.mp4
+fram compress-video video.mp4 --crf 24 --preset medium -o smaller.mp4
+fram strip-audio video.mp4 -o silent.mp4
+fram extract-audio video.mp4 -o audio.m4a
+fram extract-frame video.mp4 --at 00:00:05 -o frame.png
+fram gif video.mp4 --fps 12 --width 480 -o clip.gif
+fram speed video.mp4 2 -o fast.mp4
+fram reverse video.mp4 --no-audio -o reversed.mp4
+fram grayscale video.mp4 -o gray.mp4
+```
+
+## Interactive Mode
 
 ```bash
 fram
@@ -98,12 +163,6 @@ python -m fram.bot.main
 
 Polling is the default. Webhook mode uses `FRAM_BOT_MODE=webhook` and `FRAM_BOT_WEBHOOK_URL`.
 
-## Tests
-
-```bash
-uv run --group dev python -m pytest
-```
-
 ## Supported Media
 
 Images:
@@ -117,7 +176,15 @@ Videos:
 - input: common FFmpeg-readable formats like `mp4`, `mov`, `mkv`, `webm`, `avi`, `gif`
 - output: depends on output suffix and local FFmpeg codecs
 
-## Docs
+## Development
+
+```bash
+uv sync
+uv run --group dev python -m pytest
+uv run --group dev ruff check .
+```
+
+Docs:
 
 - [Architecture](docs/architecture.md)
 - [CLI](docs/cli.md)
@@ -125,3 +192,7 @@ Videos:
 - [Bot](docs/bot.md)
 - [Media Support](docs/media-support.md)
 - [Roadmap](docs/roadmap.md)
+
+## License
+
+MIT. See [LICENSE](LICENSE).

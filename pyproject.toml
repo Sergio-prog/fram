@@ -4,6 +4,17 @@ version = "0.1.0"
 description = "A compact media workshop for terminal, API, and Telegram."
 readme = "README.md"
 requires-python = ">=3.11"
+license = { file = "LICENSE" }
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: End Users/Desktop",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Multimedia :: Graphics",
+  "Topic :: Multimedia :: Video",
+]
 dependencies = [
   "aiogram>=3.4",
   "fastapi>=0.111",
@@ -17,6 +28,11 @@ dependencies = [
   "typer>=0.12",
   "uvicorn>=0.30",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Sergio-prog/fram"
+Repository = "https://github.com/Sergio-prog/fram"
+Issues = "https://github.com/Sergio-prog/fram/issues"
 
 [dependency-groups]
 dev = [
