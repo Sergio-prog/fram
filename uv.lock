@@ -255,17 +255,23 @@ name = "fram"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "aiogram" },
-    { name = "fastapi" },
     { name = "ffmpeg-python" },
     { name = "pillow" },
     { name = "pydantic" },
-    { name = "pydantic-settings" },
-    { name = "python-multipart" },
     { name = "textual" },
     { name = "textual-image", extra = ["textual"] },
     { name = "typer" },
+]
+
+[package.optional-dependencies]
+api = [
+    { name = "fastapi" },
+    { name = "python-multipart" },
     { name = "uvicorn" },
+]
+bot = [
+    { name = "aiogram" },
+    { name = "pydantic-settings" },
 ]
 
 [package.dev-dependencies]
@@ -276,18 +282,19 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiogram", specifier = ">=3.4" },
-    { name = "fastapi", specifier = ">=0.111" },
+    { name = "aiogram", marker = "extra == 'bot'", specifier = ">=3.4" },
+    { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.111" },
     { name = "ffmpeg-python", specifier = ">=0.2" },
     { name = "pillow", specifier = ">=10.3" },
     { name = "pydantic", specifier = ">=2.7" },
-    { name = "pydantic-settings", specifier = ">=2.2" },
-    { name = "python-multipart", specifier = ">=0.0.9" },
+    { name = "pydantic-settings", marker = "extra == 'bot'", specifier = ">=2.2" },
+    { name = "python-multipart", marker = "extra == 'api'", specifier = ">=0.0.9" },
     { name = "textual", specifier = ">=0.58" },
     { name = "textual-image", extras = ["textual"], specifier = ">=0.12" },
     { name = "typer", specifier = ">=0.12" },
-    { name = "uvicorn", specifier = ">=0.30" },
+    { name = "uvicorn", marker = "extra == 'api'", specifier = ">=0.30" },
 ]
+provides-extras = ["api", "bot"]
 
 [package.metadata.requires-dev]
 dev = [

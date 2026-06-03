@@ -21,16 +21,25 @@ Fram crops, resizes, compresses, and converts images; cuts, resizes, crops, comp
 
 ## Install
 
-Fram requires Python 3.11+ and FFmpeg.
+Fram requires Python 3.11+ and FFmpeg. For manual global installs, use either `uv` or `pipx`.
 
 ```bash
 ffmpeg -version
+uv --version
+pipx --version
 ```
 
-Install the global CLI with `uv tool install` or `pipx` through the installer:
+Install with the script:
 
 ```bash
-curl -LsSf https://raw.githubusercontent.com/Sergio-prog/fram/main/scripts/install.sh | sh
+curl -LsSf https://fram.serhiifotex.dev/install.sh | sh
+```
+
+Homebrew support is planned through a tap, which will install FFmpeg automatically:
+
+```bash
+brew tap Sergio-prog/fram
+brew install fram
 ```
 
 Manual install with `uv tool`:
@@ -45,6 +54,13 @@ Manual install with `pipx`:
 pipx install git+https://github.com/Sergio-prog/fram.git
 ```
 
+After the first PyPI release, the manual commands become:
+
+```bash
+uv tool install fram
+pipx install fram
+```
+
 From a local checkout:
 
 ```bash
@@ -56,7 +72,8 @@ pipx install .
 For development:
 
 ```bash
-uv sync
+uv --version
+uv sync --all-extras
 uv run fram --help
 ```
 
@@ -133,10 +150,16 @@ TUI shortcuts:
 
 ## API
 
+Install the API extra when running from a checkout:
+
+```bash
+uv sync --extra api
+```
+
 Run locally:
 
 ```bash
-uvicorn fram.api.main:app --reload
+uv run uvicorn fram.api.main:app --reload
 ```
 
 Token auth is optional. If `FRAM_API_TOKEN` is set, requests must include:
@@ -155,10 +178,16 @@ curl -F "file=@image.jpg" \
 
 ## Telegram Bot
 
+Install the bot extra when running from a checkout:
+
+```bash
+uv sync --extra bot
+```
+
 Set `FRAM_BOT_TOKEN`, then:
 
 ```bash
-python -m fram.bot.main
+uv run python -m fram.bot.main
 ```
 
 Polling is the default. Webhook mode uses `FRAM_BOT_MODE=webhook` and `FRAM_BOT_WEBHOOK_URL`.
@@ -179,9 +208,9 @@ Videos:
 ## Development
 
 ```bash
-uv sync
-uv run --group dev python -m pytest
-uv run --group dev ruff check .
+uv sync --all-extras
+uv run --all-extras --group dev python -m pytest
+uv run --all-extras --group dev ruff check .
 ```
 
 Docs:
@@ -192,6 +221,7 @@ Docs:
 - [Bot](docs/bot.md)
 - [Media Support](docs/media-support.md)
 - [Roadmap](docs/roadmap.md)
+- [Releasing](docs/releasing.md)
 
 ## License
 
