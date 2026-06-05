@@ -4,6 +4,8 @@ from fram.bot.services.operations import build_operation
 from fram.core.errors import InvalidOperation
 from fram.core.media import MediaType
 from fram.core.operations import (
+    AdjustParams,
+    ContactSheetParams,
     CropParams,
     CutParams,
     ExtractAudioParams,
@@ -16,6 +18,8 @@ from fram.core.operations import (
     SpeedParams,
     StripAudioParams,
     StripMetadataParams,
+    ThumbnailParams,
+    UpscaleParams,
     VideoCompressParams,
 )
 
@@ -81,9 +85,21 @@ def test_build_new_no_param_operations_from_bot_input() -> None:
 def test_build_new_video_operations_from_bot_input() -> None:
     gif_operation = build_operation("gif", MediaType.VIDEO, "12 480")
     speed_operation = build_operation("speed", MediaType.VIDEO, "2")
+    thumbnail_operation = build_operation("thumbnail", MediaType.VIDEO, "5")
+    sheet_operation = build_operation("contact-sheet", MediaType.VIDEO, "3 3 320")
 
     assert isinstance(gif_operation.params, GifParams)
     assert isinstance(speed_operation.params, SpeedParams)
+    assert isinstance(thumbnail_operation.params, ThumbnailParams)
+    assert isinstance(sheet_operation.params, ContactSheetParams)
+
+
+def test_build_new_image_operations_from_bot_input() -> None:
+    adjust_operation = build_operation("adjust", MediaType.IMAGE, "1.1 1.2")
+    upscale_operation = build_operation("upscale", MediaType.IMAGE, "2")
+
+    assert isinstance(adjust_operation.params, AdjustParams)
+    assert isinstance(upscale_operation.params, UpscaleParams)
 
 
 def test_build_operation_rejects_bad_input() -> None:

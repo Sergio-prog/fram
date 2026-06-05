@@ -1,28 +1,46 @@
 from fram.core.errors import InvalidOperation
 from fram.core.media import MediaType
 from fram.core.operation_factory import (
+    adjust,
+    auto_orient,
+    background,
     blur,
+    contact_sheet,
     convert,
     crop,
     cut,
     extract_audio,
     extract_frame,
+    extract_subtitles,
     flip,
     fps,
     gif,
     grayscale,
     image_compress,
+    mute_audio,
     resize,
     reverse,
     rotate,
+    sharpen,
     speed,
     strip_audio,
     strip_metadata,
+    thumbnail,
+    upscale,
     video_compress,
+    watermark,
 )
 from fram.core.operations import Operation
 
-NO_PARAM_ACTIONS = {"strip-audio", "strip-metadata", "grayscale", "extract-audio", "reverse"}
+NO_PARAM_ACTIONS = {
+    "strip-audio",
+    "strip-metadata",
+    "grayscale",
+    "extract-audio",
+    "reverse",
+    "auto-orient",
+    "mute-audio",
+}
 
 
 def build_operation(action: str, media_type: MediaType, raw_value: str | None = None) -> Operation:
@@ -46,6 +64,18 @@ def build_operation(action: str, media_type: MediaType, raw_value: str | None = 
         return blur(_float_value(value or "2", "Blur radius must be a number."))
     if action == "grayscale":
         return grayscale()
+    if action == "adjust":
+        return _build_adjust(value)
+    if action == "sharpen":
+        return sharpen(_float_value(value or "2", "Sharpen factor must be a number."))
+    if action == "watermark":
+        return _build_watermark(value)
+    if action == "upscale":
+        return upscale(_float_value(value or "2", "Upscale factor must be a number."))
+    if action == "auto-orient":
+        return auto_orient()
+    if action == "background":
+        return background(_required(value, "Send a color like white or #ffffff."))
     if action == "convert":
         return convert(_required(value, "Send a format like webp, png, jpg, gif, or mp4."))
     if action == "rotate":
@@ -62,6 +92,14 @@ def build_operation(action: str, media_type: MediaType, raw_value: str | None = 
         return speed(_float_value(value, "Speed factor must be a number."))
     if action == "reverse":
         return reverse()
+    if action == "mute-audio":
+        return mute_audio()
+    if action == "thumbnail":
+        return thumbnail(value or "0")
+    if action == "contact-sheet":
+        return _build_contact_sheet(value)
+    if action == "extract-subtitles":
+        return extract_subtitles(_int_value(value or "0", "Subtitle stream index must be integer."))
 
     raise InvalidOperation(f"Unknown action: {action}")
 
@@ -107,6 +145,39 @@ def _build_gif(value: str) -> Operation:
     fps_value = _int_value(parts[0], "GIF FPS must be an integer.")
     width = _int_value(parts[1], "GIF width must be an integer.") if len(parts) == 2 else None
     return gif(fps_value, width)
+
+
+def _build_adjust(value: str) -> Operation:
+    parts = (value or "1 1").split()
+    if len(parts) > 2:
+        raise InvalidOperation("Adjust format: brightness, or brightness contrast.")
+    brightness = _float_value(parts[0], "Brightness must be a number.")
+    contrast = _float_value(parts[1], "Contrast must be a number.") if len(parts) == 2 else 1.0
+    return adjust(brightness, contrast)
+
+
+def _build_watermark(value: str) -> Operation:
+    parts = _required(value, "Send watermark text.").split()
+    if len(parts) == 1:
+        return watermark(parts[0])
+    if len(parts) == 4:
+        return watermark(
+            parts[0],
+            opacity=_float_value(parts[1], "Watermark opacity must be a number."),
+            position=parts[2],
+            size=_int_value(parts[3], "Watermark size must be an integer."),
+        )
+    raise InvalidOperation("Watermark format: text, or text opacity position size.")
+
+
+def _build_contact_sheet(value: str) -> Operation:
+    parts = (value or "3 3 320").split()
+    if len(parts) not in {2, 3}:
+        raise InvalidOperation("Contact sheet format: columns rows [width].")
+    columns = _int_value(parts[0], "Columns must be an integer.")
+    rows = _int_value(parts[1], "Rows must be an integer.")
+    width = _int_value(parts[2], "Width must be an integer.") if len(parts) == 3 else 320
+    return contact_sheet(columns, rows, width)
 
 
 def _required(value: str, message: str) -> str:

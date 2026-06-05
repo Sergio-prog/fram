@@ -1,15 +1,19 @@
 from fram.core.errors import InvalidOperation
 from fram.core.operations import (
+    ContactSheetParams,
     CutParams,
     ExtractAudioParams,
     ExtractFrameParams,
+    ExtractSubtitlesParams,
     FpsParams,
     GifParams,
+    MuteAudioParams,
     Operation,
     OperationName,
     ReverseParams,
     SpeedParams,
     StripAudioParams,
+    ThumbnailParams,
     VideoCompressParams,
 )
 from fram.utils.timecodes import parse_timecode
@@ -71,3 +75,34 @@ def speed(factor: float) -> Operation:
 
 def reverse(include_audio: bool = True) -> Operation:
     return Operation(name=OperationName.REVERSE, params=ReverseParams(include_audio=include_audio))
+
+
+def mute_audio() -> Operation:
+    return Operation(name=OperationName.MUTE_AUDIO, params=MuteAudioParams())
+
+
+def thumbnail(at: str = "0") -> Operation:
+    return Operation(
+        name=OperationName.THUMBNAIL,
+        params=ThumbnailParams(at_seconds=parse_timecode(at)),
+    )
+
+
+def contact_sheet(columns: int = 3, rows: int = 3, width: int = 320) -> Operation:
+    if columns <= 0 or rows <= 0:
+        raise InvalidOperation("Contact sheet columns and rows must be greater than zero.")
+    if width <= 0:
+        raise InvalidOperation("Contact sheet width must be greater than zero.")
+    return Operation(
+        name=OperationName.CONTACT_SHEET,
+        params=ContactSheetParams(columns=columns, rows=rows, width=width),
+    )
+
+
+def extract_subtitles(stream_index: int = 0) -> Operation:
+    if stream_index < 0:
+        raise InvalidOperation("Subtitle stream index must be zero or greater.")
+    return Operation(
+        name=OperationName.EXTRACT_SUBTITLES,
+        params=ExtractSubtitlesParams(stream_index=stream_index),
+    )

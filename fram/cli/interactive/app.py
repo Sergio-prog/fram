@@ -16,6 +16,7 @@ from fram.cli.interactive.operations import (
     describe_operation,
     value_presets_for,
 )
+from fram.cli.interactive.param_sliders import NumericParamSliders
 from fram.cli.interactive.previews import PreviewImage, cleanup_preview, prepare_preview_image
 from fram.cli.interactive.widgets import ChoiceItem, CutRangeSlider
 from fram.core.errors import FramError
@@ -28,7 +29,14 @@ from fram.utils.timecodes import format_seconds
 
 
 class FramInteractiveApp(App[None]):
-    NO_VALUE_ACTIONS = {"strip-audio", "strip-metadata", "grayscale", "extract-audio"}
+    NO_VALUE_ACTIONS = {
+        "strip-audio",
+        "strip-metadata",
+        "grayscale",
+        "extract-audio",
+        "auto-orient",
+        "mute-audio",
+    }
 
     CSS = """
     Screen { padding: 1 2; }
@@ -66,6 +74,14 @@ class FramInteractiveApp(App[None]):
         max-height: 7;
         margin: 0 0 1 0;
     }
+    #param-sliders {
+        border: tall $accent;
+        margin: 0 0 1 0;
+        padding: 0 1;
+    }
+    #param-sliders:focus {
+        border: tall $success;
+    }
     #preview_image, #preview_text {
         padding: 0 1;
         width: auto;
@@ -84,9 +100,10 @@ class FramInteractiveApp(App[None]):
         ("f", "focus_files", "Files"),
         ("a", "focus_actions", "Actions"),
         ("d", "drop_last", "Drop"),
-        ("tab", "switch_cut_edge", "Edge"),
-        ("left", "move_cut_left", "Cut -"),
-        ("right", "move_cut_right", "Cut +"),
+        ("left", "move_slider_left", "Value -"),
+        ("right", "move_slider_right", "Value +"),
+        ("up", "previous_slider", "Slider ↑"),
+        ("down", "next_slider", "Slider ↓"),
         ("r", "run_pipeline", "Run"),
         ("q", "quit", "Quit"),
     ]
@@ -100,6 +117,7 @@ class FramInteractiveApp(App[None]):
         self.pipeline_open = False
         self.show_info = True
         self.cut_slider = CutRangeSlider()
+        self.param_sliders = NumericParamSliders()
         self.current_preview: PreviewImage | None = None
 
     def compose(self) -> ComposeResult:
@@ -116,6 +134,7 @@ class FramInteractiveApp(App[None]):
                 yield Button("Pipeline (0 operations) ▸", id="pipeline-toggle")
                 yield Static(id="operations")
                 yield self.cut_slider
+                yield self.param_sliders
                 yield Static("Value for action", classes="field-label")
                 yield Input(id="params", placeholder="Custom value, then Enter")
                 yield ListView(id="preset-suggestions")
@@ -151,9 +170,9 @@ class FramInteractiveApp(App[None]):
             self._use_preset(item.value)
             return
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "run":
-            self.action_run_pipeline()
+            await self.action_run_pipeline()
         elif event.button.id == "drop":
             self.action_drop_last()
         elif event.button.id == "pipeline-toggle":
@@ -169,6 +188,16 @@ class FramInteractiveApp(App[None]):
             self._add_operation(event.value)
 
     def on_key(self, event: events.Key) -> None:
+        if self.focused is self.param_sliders:
+            if event.key == "enter":
+                self._add_operation(self.query_one("#params", Input).value)
+                event.stop()
+                return
+            if event.key in {"up", "down"}:
+                self._switch_param_slider(-1 if event.key == "up" else 1)
+                event.stop()
+                return
+
         if event.key not in {"down", "up"}:
             return
         if self.focused is not self.query_one("#params", Input):
@@ -197,20 +226,36 @@ class FramInteractiveApp(App[None]):
             self.state.operations.pop()
             self._refresh()
 
-    def action_switch_cut_edge(self) -> None:
-        if self.selected_action != "cut":
+    def action_previous_slider(self) -> None:
+        self._switch_slider(-1)
+
+    def action_next_slider(self) -> None:
+        self._switch_slider(1)
+
+    def _switch_slider(self, direction: int) -> None:
+        if self.selected_action == "cut":
+            if direction < 0:
+                self.state.cut_range.active_edge = "start"
+            else:
+                self.state.cut_range.active_edge = "end"
+            self._sync_cut_input()
+            self._refresh()
             return
-        self.state.cut_range.switch_edge()
-        self._sync_cut_input()
-        self._refresh()
+        if not self.param_sliders.specs:
+            return
+        self._switch_param_slider(direction)
 
-    def action_move_cut_left(self) -> None:
-        self._move_cut(-1)
+    def _switch_param_slider(self, direction: int) -> None:
+        self.param_sliders.switch_active(direction)
+        self._sync_param_slider_input()
 
-    def action_move_cut_right(self) -> None:
-        self._move_cut(1)
+    def action_move_slider_left(self) -> None:
+        self._move_slider(-1)
 
-    def action_run_pipeline(self) -> None:
+    def action_move_slider_right(self) -> None:
+        self._move_slider(1)
+
+    async def action_run_pipeline(self) -> None:
         if self.state.file is None:
             self.notify("Select a file first.", severity="warning")
             return
@@ -232,6 +277,8 @@ class FramInteractiveApp(App[None]):
             return
 
         self.state.output_path = result
+        self.current_dir = result.parent
+        await self._load_files(selected_path=result)
         self.notify(f"Saved {result}")
         self._refresh()
 
@@ -243,12 +290,17 @@ class FramInteractiveApp(App[None]):
             return
         self._select_file(path)
 
-    async def _load_files(self) -> None:
+    async def _load_files(self, selected_path: Path | None = None) -> None:
         file_list = self.query_one("#files", ListView)
         await file_list.clear()
         entries = list_browser_entries(self.current_dir)
-        for entry in entries:
+        selected_index = None
+        for index, entry in enumerate(entries):
             file_list.append(self._browser_item(entry))
+            if selected_path is not None and entry.path == selected_path:
+                selected_index = index
+        if selected_index is not None:
+            file_list.index = selected_index
 
     def _browser_item(self, entry: BrowserEntry) -> ChoiceItem:
         prefix = "▸ " if entry.is_dir else "  "
@@ -279,6 +331,7 @@ class FramInteractiveApp(App[None]):
             preview_error=self.current_preview.error,
         )
         self.selected_action = None
+        self.param_sliders.configure(None, self.state.media_type)
         self.query_one("#params", Input).value = ""
         self.query_one("#params", Input).placeholder = ""
         self._load_actions(media_type)
@@ -298,10 +351,16 @@ class FramInteractiveApp(App[None]):
             self._add_operation("")
             return
 
+        self.param_sliders.configure(action, self.state.media_type)
         self.query_one("#params", Input).placeholder = ACTION_HELP[action]
         if action == "cut":
             self._sync_cut_input()
-        self.query_one("#params", Input).focus()
+        elif self.param_sliders.specs:
+            self._sync_param_slider_input()
+        if self.param_sliders.specs:
+            self.param_sliders.focus()
+        else:
+            self.query_one("#params", Input).focus()
         self._refresh_preset_suggestions(self.query_one("#params", Input).value)
         self._refresh()
 
@@ -326,23 +385,34 @@ class FramInteractiveApp(App[None]):
 
         self.state.operations.append(operation)
         self.selected_action = None
+        self.param_sliders.configure(None, self.state.media_type)
         self.query_one("#params", Input).value = ""
         self.query_one("#params", Input).placeholder = ""
         self._refresh_preset_suggestions("")
         self.query_one("#actions", ListView).focus()
         self._refresh()
 
-    def _move_cut(self, delta: int) -> None:
-        if self.selected_action != "cut":
+    def _move_slider(self, delta: int) -> None:
+        if self.selected_action == "cut":
+            self.state.cut_range.move_active(delta)
+            self._sync_cut_input()
+            self._refresh()
             return
-        self.state.cut_range.move_active(delta)
-        self._sync_cut_input()
-        self._refresh()
+        if not self.param_sliders.specs:
+            return
+        self.param_sliders.move_active(delta)
+        self._sync_param_slider_input()
 
     def _sync_cut_input(self) -> None:
         value = self.state.cut_range.to_input_value(self.state.duration_seconds)
         if value:
             self.query_one("#params", Input).value = value
+
+    def _sync_param_slider_input(self) -> None:
+        value = self.param_sliders.input_value()
+        if value:
+            self.query_one("#params", Input).value = value
+            self._refresh_preset_suggestions(value)
 
     def _refresh(self) -> None:
         self.query_one("#summary", Static).update(self._summary_text())
@@ -353,6 +423,7 @@ class FramInteractiveApp(App[None]):
         self.query_one("#operations", Static).display = self.pipeline_open
         self._refresh_preset_suggestions(self.query_one("#params", Input).value)
         self._refresh_cut_slider()
+        self._refresh_param_sliders()
 
     def _refresh_preview(self) -> None:
         image = self.query_one("#preview_image", TerminalImage)
@@ -373,6 +444,13 @@ class FramInteractiveApp(App[None]):
         self.cut_slider.display = is_cut
         if is_cut:
             self.cut_slider.update_range(self.state.cut_range, self._duration_label())
+
+    def _refresh_param_sliders(self) -> None:
+        self.param_sliders.display = (
+            self.selected_action != "cut" and bool(self.param_sliders.specs)
+        )
+        if self.param_sliders.display:
+            self.param_sliders.refresh_display()
 
     def _summary_text(self) -> str:
         if self.state.file is None:
@@ -414,6 +492,8 @@ class FramInteractiveApp(App[None]):
 
     def _preset_values(self, query: str = "") -> list[str]:
         if self.selected_action is None:
+            return []
+        if self.selected_action != "cut" and self.param_sliders.specs:
             return []
 
         slider_value = self.state.cut_range.to_input_value(self.state.duration_seconds)

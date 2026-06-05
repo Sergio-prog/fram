@@ -48,3 +48,25 @@ class SpeedParams:
 @dataclass(frozen=True)
 class ReverseParams:
     include_audio: bool = True
+
+
+@dataclass(frozen=True)
+class MuteAudioParams:
+    enabled: bool = True
+
+
+@dataclass(frozen=True)
+class ThumbnailParams:
+    at_seconds: float = 0.0
+
+
+@dataclass(frozen=True)
+class ContactSheetParams:
+    columns: int = 3
+    rows: int = 3
+    width: int = 320
+
+
+@dataclass(frozen=True)
+class ExtractSubtitlesParams:
+    stream_index: int = 0

@@ -4,21 +4,27 @@ from pathlib import Path
 from fram.core.errors import InvalidOperation
 from fram.core.operations import (
     BlurParams,
+    ContactSheetParams,
     ConvertParams,
     CropParams,
     CutParams,
     ExtractAudioParams,
     ExtractFrameParams,
+    ExtractSubtitlesParams,
+    FlipParams,
     FpsParams,
     GifParams,
     GrayscaleParams,
+    MuteAudioParams,
     Operation,
     OperationName,
     ResizeParams,
     ReverseParams,
+    RotateParams,
     SpeedParams,
     StripAudioParams,
     StripMetadataParams,
+    ThumbnailParams,
     VideoCompressParams,
 )
 from fram.core.processors.base import MediaProcessor
@@ -101,9 +107,21 @@ class VideoProcessor(MediaProcessor):
             case OperationName.GRAYSCALE:
                 self.expect(operation.params, GrayscaleParams)
                 plan.video_filters.append("hue=s=0")
+            case OperationName.ROTATE:
+                params = self.expect(operation.params, RotateParams)
+                plan.video_filters.append(self.rotate_filter(params.degrees))
+            case OperationName.FLIP:
+                params = self.expect(operation.params, FlipParams)
+                if params.horizontal:
+                    plan.video_filters.append("hflip")
+                if params.vertical:
+                    plan.video_filters.append("vflip")
             case OperationName.STRIP_AUDIO:
                 self.expect(operation.params, StripAudioParams)
                 plan.disable_audio = True
+            case OperationName.MUTE_AUDIO:
+                self.expect(operation.params, MuteAudioParams)
+                plan.audio_filters.append("volume=0")
             case OperationName.EXTRACT_AUDIO:
                 self.expect(operation.params, ExtractAudioParams)
                 plan.disable_video = True
@@ -111,6 +129,28 @@ class VideoProcessor(MediaProcessor):
                 params = self.expect(operation.params, ExtractFrameParams)
                 plan.input_args.extend(["-ss", str(params.at_seconds)])
                 plan.output_args.extend(["-frames:v", "1"])
+            case OperationName.THUMBNAIL:
+                params = self.expect(operation.params, ThumbnailParams)
+                plan.input_args.extend(["-ss", str(params.at_seconds)])
+                plan.output_args.extend(["-frames:v", "1"])
+                plan.disable_audio = True
+            case OperationName.CONTACT_SHEET:
+                params = self.expect(operation.params, ContactSheetParams)
+                frame_count = params.columns * params.rows
+                plan.video_filters.extend(
+                    [
+                        f"select='not(mod(n\\,{frame_count}))'",
+                        f"scale={params.width}:-1:flags=lanczos",
+                        f"tile={params.columns}x{params.rows}",
+                    ]
+                )
+                plan.output_args.extend(["-frames:v", "1"])
+                plan.disable_audio = True
+            case OperationName.EXTRACT_SUBTITLES:
+                params = self.expect(operation.params, ExtractSubtitlesParams)
+                plan.output_args.extend(["-map", f"0:s:{params.stream_index}"])
+                plan.disable_video = True
+                plan.disable_audio = True
             case OperationName.GIF:
                 params = self.expect(operation.params, GifParams)
                 if params.fps <= 0:
@@ -147,3 +187,16 @@ class VideoProcessor(MediaProcessor):
             remaining /= 0.5
         filters.append(f"atempo={remaining:g}")
         return filters
+
+    def rotate_filter(self, degrees: int) -> str:
+        normalized = degrees % 360
+        if normalized == 0:
+            return "null"
+        if normalized == 90:
+            return "transpose=1"
+        if normalized == 180:
+            return "hflip,vflip"
+        if normalized == 270:
+            return "transpose=2"
+        radians = f"{degrees:g}*PI/180"
+        return f"rotate={radians}:ow=rotw({radians}):oh=roth({radians})"

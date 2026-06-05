@@ -1,24 +1,34 @@
 from fram.core.errors import InvalidOperation
 from fram.core.media import MediaType
 from fram.core.operation_factory import (
+    adjust,
+    auto_orient,
+    background,
     blur,
+    contact_sheet,
     convert,
     crop,
     cut,
     extract_audio,
     extract_frame,
+    extract_subtitles,
     flip,
     fps,
     gif,
     grayscale,
     image_compress,
+    mute_audio,
     resize,
     reverse,
     rotate,
+    sharpen,
     speed,
     strip_audio,
     strip_metadata,
+    thumbnail,
+    upscale,
     video_compress,
+    watermark,
 )
 from fram.core.operations import Operation, OperationName
 
@@ -32,6 +42,12 @@ IMAGE_ACTIONS = [
     "strip-metadata",
     "blur",
     "grayscale",
+    "adjust",
+    "sharpen",
+    "watermark",
+    "upscale",
+    "auto-orient",
+    "background",
 ]
 VIDEO_ACTIONS = [
     "cut",
@@ -49,6 +65,10 @@ VIDEO_ACTIONS = [
     "gif",
     "speed",
     "reverse",
+    "mute-audio",
+    "thumbnail",
+    "contact-sheet",
+    "extract-subtitles",
 ]
 
 ACTION_LABELS = {
@@ -61,6 +81,12 @@ ACTION_LABELS = {
     "strip-metadata": "🧹 strip-metadata",
     "blur": "🌫 blur",
     "grayscale": "⚫ grayscale",
+    "adjust": "☀ adjust",
+    "sharpen": "△ sharpen",
+    "watermark": "WM watermark",
+    "upscale": "⤢ upscale",
+    "auto-orient": "↟ auto-orient",
+    "background": "▣ background",
     "convert": "🔁 convert",
     "rotate": "↻ rotate",
     "flip": "↔ flip",
@@ -69,6 +95,10 @@ ACTION_LABELS = {
     "gif": "🎞 GIF",
     "speed": "⏩ speed",
     "reverse": "↩ reverse",
+    "mute-audio": "🔈 mute-audio",
+    "thumbnail": "▣ thumbnail",
+    "contact-sheet": "▦ contact-sheet",
+    "extract-subtitles": "CC extract-subtitles",
 }
 
 ACTION_HELP = {
@@ -81,6 +111,12 @@ ACTION_HELP = {
     "strip-metadata": "no params; press add/apply",
     "blur": "radius, e.g. 2",
     "grayscale": "no params; press add/apply",
+    "adjust": "brightness [contrast], e.g. 1.1 1.2",
+    "sharpen": "factor, e.g. 2",
+    "watermark": "text [opacity position size]",
+    "upscale": "factor, e.g. 2",
+    "auto-orient": "no params; press add/apply",
+    "background": "color, e.g. white or #ffffff",
     "convert": "format, e.g. webp, png, jpg, gif, mp4",
     "rotate": "clockwise degrees, e.g. 90",
     "flip": "horizontal, vertical, or both",
@@ -89,6 +125,10 @@ ACTION_HELP = {
     "gif": "fps [width], e.g. 12 480",
     "speed": "factor, e.g. 2 or 0.5",
     "reverse": "no params, or no-audio",
+    "mute-audio": "no params; press add/apply",
+    "thumbnail": "timestamp, e.g. 00:00:05",
+    "contact-sheet": "columns rows [width], e.g. 3 3 320",
+    "extract-subtitles": "stream index, e.g. 0",
 }
 
 VALUE_PRESETS = {
@@ -101,6 +141,12 @@ VALUE_PRESETS = {
     "strip-metadata": ["apply"],
     "blur": ["2", "5", "10"],
     "grayscale": ["apply"],
+    "adjust": ["1.1 1.1", "0.9 1.2", "1.2 1"],
+    "sharpen": ["2", "3", "0"],
+    "watermark": ["FRAM 0.75 bottom-right 32"],
+    "upscale": ["2", "1.5", "3"],
+    "auto-orient": ["apply"],
+    "background": ["white", "#ffffff", "black"],
     "convert": ["webp", "png", "jpg", "mp4", "gif"],
     "rotate": ["90", "180", "270"],
     "flip": ["horizontal", "vertical", "both"],
@@ -109,6 +155,10 @@ VALUE_PRESETS = {
     "gif": ["12", "12 480", "15 720"],
     "speed": ["2", "0.5", "1.25"],
     "reverse": ["apply", "no-audio"],
+    "mute-audio": ["apply"],
+    "thumbnail": ["00:00:05", "5"],
+    "contact-sheet": ["3 3 320", "4 4 240"],
+    "extract-subtitles": ["0"],
 }
 
 
@@ -154,6 +204,18 @@ def build_interactive_operation(
         return blur(_float_value(value or "2", "Blur radius must be a number."))
     if action == "grayscale":
         return grayscale()
+    if action == "adjust":
+        return _build_adjust(value)
+    if action == "sharpen":
+        return sharpen(_float_value(value or "2", "Sharpen factor must be a number."))
+    if action == "watermark":
+        return _build_watermark(value)
+    if action == "upscale":
+        return upscale(_float_value(value or "2", "Upscale factor must be a number."))
+    if action == "auto-orient":
+        return auto_orient()
+    if action == "background":
+        return background(_required(value, "Background needs a color."))
     if action == "convert":
         return convert(_required(value, "Convert needs a format, e.g. webp."))
     if action == "rotate":
@@ -170,6 +232,14 @@ def build_interactive_operation(
         return speed(_float_value(value, "Speed factor must be a number."))
     if action == "reverse":
         return reverse(include_audio=value.lower() != "no-audio")
+    if action == "mute-audio":
+        return mute_audio()
+    if action == "thumbnail":
+        return thumbnail(value or "0")
+    if action == "contact-sheet":
+        return _build_contact_sheet(value)
+    if action == "extract-subtitles":
+        return extract_subtitles(_int_value(value or "0", "Subtitle stream index must be integer."))
     raise InvalidOperation(f"Unknown action: {action}")
 
 
@@ -198,6 +268,21 @@ def describe_operation(operation: Operation) -> str:
             return f"blur radius={params.radius:g}"
         case OperationName.GRAYSCALE:
             return "grayscale"
+        case OperationName.ADJUST:
+            return f"adjust brightness={params.brightness:g} contrast={params.contrast:g}"
+        case OperationName.SHARPEN:
+            return f"sharpen factor={params.factor:g}"
+        case OperationName.WATERMARK:
+            return (
+                f"watermark {params.text!r} opacity={params.opacity:g} "
+                f"position={params.position.value} size={params.size}"
+            )
+        case OperationName.UPSCALE:
+            return f"upscale {params.factor:g}x"
+        case OperationName.AUTO_ORIENT:
+            return "auto-orient"
+        case OperationName.BACKGROUND:
+            return f"background {params.color}"
         case OperationName.CONVERT:
             return f"convert {params.format}"
         case OperationName.ROTATE:
@@ -220,6 +305,17 @@ def describe_operation(operation: Operation) -> str:
             return f"speed {params.factor:g}x"
         case OperationName.REVERSE:
             return "reverse" if params.include_audio else "reverse no-audio"
+        case OperationName.MUTE_AUDIO:
+            return "mute-audio"
+        case OperationName.THUMBNAIL:
+            return f"thumbnail at={params.at_seconds:g}s"
+        case OperationName.CONTACT_SHEET:
+            return (
+                f"contact-sheet {params.columns}x{params.rows} "
+                f"width={params.width}"
+            )
+        case OperationName.EXTRACT_SUBTITLES:
+            return f"extract-subtitles stream={params.stream_index}"
         case _:
             return operation.name.value
 
@@ -251,6 +347,43 @@ def _build_gif(value: str) -> Operation:
     fps_value = _int_value(parts[0], "GIF FPS must be an integer.")
     width = _int_value(parts[1], "GIF width must be an integer.") if len(parts) == 2 else None
     return gif(fps_value, width)
+
+
+def _build_adjust(value: str) -> Operation:
+    parts = (value or "1 1").split()
+    if len(parts) > 2:
+        raise InvalidOperation("Adjust format: brightness, or brightness contrast.")
+    brightness = _float_value(parts[0], "Brightness must be a number.")
+    contrast = _float_value(parts[1], "Contrast must be a number.") if len(parts) == 2 else 1.0
+    return adjust(brightness, contrast)
+
+
+def _build_watermark(value: str) -> Operation:
+    parts = _required(value, "Watermark needs text.").split()
+    if len(parts) == 1:
+        return watermark(parts[0])
+    if len(parts) == 4:
+        return watermark(
+            parts[0],
+            opacity=_float_value(parts[1], "Watermark opacity must be a number."),
+            position=parts[2],
+            size=_int_value(parts[3], "Watermark size must be an integer."),
+        )
+    raise InvalidOperation("Watermark format: text, or text opacity position size.")
+
+
+def _build_contact_sheet(value: str) -> Operation:
+    parts = (value or "3 3 320").split()
+    if len(parts) not in {2, 3}:
+        raise InvalidOperation("Contact sheet format: columns rows [width].")
+    columns = _int_value(parts[0], "Contact sheet columns must be an integer.")
+    rows = _int_value(parts[1], "Contact sheet rows must be an integer.")
+    width = (
+        _int_value(parts[2], "Contact sheet width must be an integer.")
+        if len(parts) == 3
+        else 320
+    )
+    return contact_sheet(columns, rows, width)
 
 
 def _first_and_optional(value: str, default: str, message: str) -> tuple[str, str]:

@@ -9,17 +9,22 @@ from fram.cli.interactive.operations import (
 from fram.core.errors import InvalidOperation
 from fram.core.media import MediaType
 from fram.core.operations import (
+    AdjustParams,
+    ContactSheetParams,
     CropParams,
     CutParams,
     ExtractAudioParams,
     FpsParams,
     GifParams,
     GrayscaleParams,
+    MuteAudioParams,
     ResizeMode,
     ResizeParams,
     SpeedParams,
     StripAudioParams,
     StripMetadataParams,
+    ThumbnailParams,
+    UpscaleParams,
 )
 
 
@@ -72,12 +77,26 @@ def test_build_no_param_and_video_utility_operations_from_tui_input() -> None:
     extract_audio_operation = build_interactive_operation("extract-audio", MediaType.VIDEO, "")
     gif_operation = build_interactive_operation("gif", MediaType.VIDEO, "12 480")
     speed_operation = build_interactive_operation("speed", MediaType.VIDEO, "2")
+    mute_operation = build_interactive_operation("mute-audio", MediaType.VIDEO, "")
+    thumbnail_operation = build_interactive_operation("thumbnail", MediaType.VIDEO, "5")
+    sheet_operation = build_interactive_operation("contact-sheet", MediaType.VIDEO, "3 3 320")
 
     assert isinstance(strip_metadata_operation.params, StripMetadataParams)
     assert isinstance(grayscale_operation.params, GrayscaleParams)
     assert isinstance(extract_audio_operation.params, ExtractAudioParams)
     assert isinstance(gif_operation.params, GifParams)
     assert isinstance(speed_operation.params, SpeedParams)
+    assert isinstance(mute_operation.params, MuteAudioParams)
+    assert isinstance(thumbnail_operation.params, ThumbnailParams)
+    assert isinstance(sheet_operation.params, ContactSheetParams)
+
+
+def test_build_new_image_operations_from_tui_input() -> None:
+    adjust_operation = build_interactive_operation("adjust", MediaType.IMAGE, "1.1 1.2")
+    upscale_operation = build_interactive_operation("upscale", MediaType.IMAGE, "2")
+
+    assert isinstance(adjust_operation.params, AdjustParams)
+    assert isinstance(upscale_operation.params, UpscaleParams)
 
 
 def test_describe_operation() -> None:

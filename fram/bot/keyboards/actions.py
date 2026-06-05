@@ -10,6 +10,12 @@ ACTION_LABELS = {
     "strip-metadata": "🧹 Strip metadata",
     "blur": "🌫 Blur",
     "grayscale": "⚫ Grayscale",
+    "adjust": "☀ Adjust",
+    "sharpen": "Sharpen",
+    "watermark": "Watermark",
+    "upscale": "Upscale",
+    "auto-orient": "Auto-orient",
+    "background": "Background",
     "convert": "🔁 Convert",
     "rotate": "↻ Rotate",
     "flip": "↔️ Flip",
@@ -18,6 +24,10 @@ ACTION_LABELS = {
     "gif": "GIF",
     "speed": "⏩ Speed",
     "reverse": "↩️ Reverse",
+    "mute-audio": "🔈 Mute audio",
+    "thumbnail": "Thumbnail",
+    "contact-sheet": "Contact sheet",
+    "extract-subtitles": "Subtitles",
 }
 
 
@@ -32,6 +42,12 @@ def media_actions_keyboard(is_video: bool) -> InlineKeyboardMarkup:
         "strip-metadata",
         "blur",
         "grayscale",
+        "adjust",
+        "sharpen",
+        "watermark",
+        "upscale",
+        "auto-orient",
+        "background",
     ]
     if is_video:
         actions = [
@@ -50,6 +66,10 @@ def media_actions_keyboard(is_video: bool) -> InlineKeyboardMarkup:
             "gif",
             "speed",
             "reverse",
+            "mute-audio",
+            "thumbnail",
+            "contact-sheet",
+            "extract-subtitles",
         ]
     buttons = [
         [InlineKeyboardButton(text=ACTION_LABELS[action], callback_data=f"action:{action}")]

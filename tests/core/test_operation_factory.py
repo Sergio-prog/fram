@@ -2,7 +2,10 @@ import pytest
 
 from fram.core.errors import InvalidOperation
 from fram.core.operation_factory import (
+    adjust,
+    background,
     blur,
+    contact_sheet,
     crop,
     cut,
     flip,
@@ -11,11 +14,18 @@ from fram.core.operation_factory import (
     grayscale,
     resize,
     reverse,
+    sharpen,
     speed,
     strip_metadata,
+    thumbnail,
+    upscale,
+    watermark,
 )
 from fram.core.operations import (
+    AdjustParams,
     Anchor,
+    BackgroundParams,
+    ContactSheetParams,
     CropParams,
     CutParams,
     FlipParams,
@@ -23,7 +33,11 @@ from fram.core.operations import (
     OperationName,
     ResizeMode,
     ResizeParams,
+    SharpenParams,
     StripMetadataParams,
+    ThumbnailParams,
+    UpscaleParams,
+    WatermarkParams,
 )
 
 
@@ -92,11 +106,23 @@ def test_visual_effect_operations_build_typed_params() -> None:
     assert blur(3).name == OperationName.BLUR
     assert grayscale().name == OperationName.GRAYSCALE
 
+    adjust_operation = adjust(1.1, 1.2)
+    watermark_operation = watermark("FRAM", position="bottom-right")
+
+    assert isinstance(adjust_operation.params, AdjustParams)
+    assert isinstance(sharpen(2).params, SharpenParams)
+    assert isinstance(watermark_operation.params, WatermarkParams)
+    assert watermark_operation.params.position == Anchor.BOTTOM_RIGHT
+    assert isinstance(upscale(2).params, UpscaleParams)
+    assert isinstance(background("white").params, BackgroundParams)
+
 
 def test_video_utility_operations_build_typed_params() -> None:
     assert gif(fps_value=12, width=480).name == OperationName.GIF
     assert speed(2).name == OperationName.SPEED
     assert reverse().name == OperationName.REVERSE
+    assert isinstance(thumbnail("5").params, ThumbnailParams)
+    assert isinstance(contact_sheet(3, 3, 320).params, ContactSheetParams)
 
     with pytest.raises(InvalidOperation, match="greater than zero"):
         speed(0)

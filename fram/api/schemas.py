@@ -4,24 +4,34 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field, TypeAdapter
 
 from fram.core.operation_factory import (
+    adjust,
+    auto_orient,
+    background,
     blur,
+    contact_sheet,
     convert,
     crop,
     cut,
     extract_audio,
     extract_frame,
+    extract_subtitles,
     flip,
     fps,
     gif,
     grayscale,
     image_compress,
+    mute_audio,
     resize,
     reverse,
     rotate,
+    sharpen,
     speed,
     strip_audio,
     strip_metadata,
+    thumbnail,
+    upscale,
     video_compress,
+    watermark,
 )
 from fram.core.operations import Operation
 
@@ -109,6 +119,57 @@ class GrayscaleSpec(BaseModel):
         return grayscale()
 
 
+class AdjustSpec(BaseModel):
+    name: Literal["adjust"]
+    brightness: float = 1.0
+    contrast: float = 1.0
+
+    def to_operation(self) -> Operation:
+        return adjust(self.brightness, self.contrast)
+
+
+class SharpenSpec(BaseModel):
+    name: Literal["sharpen"]
+    factor: float = 2.0
+
+    def to_operation(self) -> Operation:
+        return sharpen(self.factor)
+
+
+class WatermarkSpec(BaseModel):
+    name: Literal["watermark"]
+    text: str
+    opacity: float = 0.75
+    position: str = "bottom-right"
+    size: int = 32
+
+    def to_operation(self) -> Operation:
+        return watermark(self.text, self.opacity, self.position, self.size)
+
+
+class UpscaleSpec(BaseModel):
+    name: Literal["upscale"]
+    factor: float = 2.0
+
+    def to_operation(self) -> Operation:
+        return upscale(self.factor)
+
+
+class AutoOrientSpec(BaseModel):
+    name: Literal["auto-orient"]
+
+    def to_operation(self) -> Operation:
+        return auto_orient()
+
+
+class BackgroundSpec(BaseModel):
+    name: Literal["background"]
+    color: str = "white"
+
+    def to_operation(self) -> Operation:
+        return background(self.color)
+
+
 class CutSpec(BaseModel):
     name: Literal["cut"]
     start: str
@@ -174,6 +235,39 @@ class ReverseSpec(BaseModel):
         return reverse(self.include_audio)
 
 
+class MuteAudioSpec(BaseModel):
+    name: Literal["mute-audio"]
+
+    def to_operation(self) -> Operation:
+        return mute_audio()
+
+
+class ThumbnailSpec(BaseModel):
+    name: Literal["thumbnail"]
+    at: str = "0"
+
+    def to_operation(self) -> Operation:
+        return thumbnail(self.at)
+
+
+class ContactSheetSpec(BaseModel):
+    name: Literal["contact-sheet"]
+    columns: int = 3
+    rows: int = 3
+    width: int = 320
+
+    def to_operation(self) -> Operation:
+        return contact_sheet(self.columns, self.rows, self.width)
+
+
+class ExtractSubtitlesSpec(BaseModel):
+    name: Literal["extract-subtitles"]
+    stream_index: int = 0
+
+    def to_operation(self) -> Operation:
+        return extract_subtitles(self.stream_index)
+
+
 OperationSpec = Annotated[
     ResizeSpec
     | CropSpec
@@ -185,6 +279,12 @@ OperationSpec = Annotated[
     | StripMetadataSpec
     | BlurSpec
     | GrayscaleSpec
+    | AdjustSpec
+    | SharpenSpec
+    | WatermarkSpec
+    | UpscaleSpec
+    | AutoOrientSpec
+    | BackgroundSpec
     | CutSpec
     | FpsSpec
     | StripAudioSpec
@@ -192,7 +292,11 @@ OperationSpec = Annotated[
     | ExtractFrameSpec
     | GifSpec
     | SpeedSpec
-    | ReverseSpec,
+    | ReverseSpec
+    | MuteAudioSpec
+    | ThumbnailSpec
+    | ContactSheetSpec
+    | ExtractSubtitlesSpec,
     Field(discriminator="name"),
 ]
 

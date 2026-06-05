@@ -5,6 +5,10 @@
 [![CLI: Typer](https://img.shields.io/badge/CLI-Typer-111827)](https://typer.tiangolo.com/)
 [![Media: FFmpeg](https://img.shields.io/badge/media-FFmpeg-007808?logo=ffmpeg&logoColor=white)](https://ffmpeg.org/)
 
+<p align="center">
+  <img src="media/preview.png" alt="preview of TUI" />
+</p>
+
 A compact media workshop for your terminal, API, and Telegram.
 
 Fram crops, resizes, compresses, and converts images; cuts, resizes, crops, compresses, changes FPS, strips audio, extracts frames, and makes GIFs from videos. The CLI, FastAPI app, and Telegram bot use the same typed processing core.
@@ -110,6 +114,12 @@ fram flip image.jpg --horizontal -o flipped.jpg
 fram strip-metadata image.jpg -o clean.jpg
 fram blur image.jpg --radius 2 -o blurred.jpg
 fram grayscale image.jpg -o gray.jpg
+fram adjust image.jpg --brightness 1.1 --contrast 1.2 -o adjusted.jpg
+fram sharpen image.jpg --factor 2 -o sharp.jpg
+fram watermark image.jpg "FRAM" --position bottom-right -o watermarked.png
+fram upscale image.jpg --factor 2 -o large.jpg
+fram auto-orient image.jpg -o oriented.jpg
+fram background transparent.png white -o flattened.jpg
 ```
 
 ### Videos
@@ -126,6 +136,12 @@ fram gif video.mp4 --fps 12 --width 480 -o clip.gif
 fram speed video.mp4 2 -o fast.mp4
 fram reverse video.mp4 --no-audio -o reversed.mp4
 fram grayscale video.mp4 -o gray.mp4
+fram rotate video.mp4 90 -o rotated.mp4
+fram flip video.mp4 --horizontal -o flipped.mp4
+fram mute-audio video.mp4 -o muted.mp4
+fram thumbnail video.mp4 --at 00:00:05 -o thumbnail.png
+fram contact-sheet video.mp4 --columns 3 --rows 3 -o sheet.png
+fram extract-subtitles video.mp4 -o subtitles.srt
 ```
 
 ## Interactive Mode
@@ -143,8 +159,8 @@ TUI shortcuts:
 - `i`: toggle detailed info
 - `a`: focus actions
 - `d`: drop last operation
-- `Tab`: switch active cut edge
-- `Left` / `Right`: move active cut edge
+- `Up` / `Down`: switch active slider
+- `Left` / `Right`: adjust active slider
 - `r`: run
 - `q`: quit
 

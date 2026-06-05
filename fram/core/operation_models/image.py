@@ -59,3 +59,37 @@ class BlurParams:
 @dataclass(frozen=True)
 class GrayscaleParams:
     enabled: bool = True
+
+
+@dataclass(frozen=True)
+class AdjustParams:
+    brightness: float = 1.0
+    contrast: float = 1.0
+
+
+@dataclass(frozen=True)
+class SharpenParams:
+    factor: float = 2.0
+
+
+@dataclass(frozen=True)
+class WatermarkParams:
+    text: str
+    opacity: float = 0.75
+    position: Anchor = Anchor.BOTTOM_RIGHT
+    size: int = 32
+
+
+@dataclass(frozen=True)
+class UpscaleParams:
+    factor: float = 2.0
+
+
+@dataclass(frozen=True)
+class AutoOrientParams:
+    enabled: bool = True
+
+
+@dataclass(frozen=True)
+class BackgroundParams:
+    color: str = "white"

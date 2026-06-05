@@ -7,6 +7,9 @@ OPERATION_OUTPUT_SUFFIXES = {
     OperationName.EXTRACT_FRAME: ".png",
     OperationName.EXTRACT_AUDIO: ".m4a",
     OperationName.GIF: ".gif",
+    OperationName.THUMBNAIL: ".png",
+    OperationName.CONTACT_SHEET: ".png",
+    OperationName.EXTRACT_SUBTITLES: ".srt",
 }
 
 

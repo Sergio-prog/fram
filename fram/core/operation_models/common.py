@@ -3,6 +3,9 @@ from enum import StrEnum
 from typing import TypeAlias
 
 from fram.core.operation_models.image import (
+    AdjustParams,
+    AutoOrientParams,
+    BackgroundParams,
     BlurParams,
     CropParams,
     FlipParams,
@@ -10,17 +13,24 @@ from fram.core.operation_models.image import (
     ImageCompressParams,
     ResizeParams,
     RotateParams,
+    SharpenParams,
+    UpscaleParams,
+    WatermarkParams,
 )
 from fram.core.operation_models.shared import ConvertParams, StripMetadataParams
 from fram.core.operation_models.video import (
+    ContactSheetParams,
     CutParams,
     ExtractAudioParams,
     ExtractFrameParams,
+    ExtractSubtitlesParams,
     FpsParams,
     GifParams,
+    MuteAudioParams,
     ReverseParams,
     SpeedParams,
     StripAudioParams,
+    ThumbnailParams,
     VideoCompressParams,
 )
 
@@ -35,6 +45,12 @@ class OperationName(StrEnum):
     STRIP_METADATA = "strip-metadata"
     BLUR = "blur"
     GRAYSCALE = "grayscale"
+    ADJUST = "adjust"
+    SHARPEN = "sharpen"
+    WATERMARK = "watermark"
+    UPSCALE = "upscale"
+    AUTO_ORIENT = "auto-orient"
+    BACKGROUND = "background"
     CUT = "cut"
     FPS = "fps"
     STRIP_AUDIO = "strip-audio"
@@ -43,6 +59,10 @@ class OperationName(StrEnum):
     GIF = "gif"
     SPEED = "speed"
     REVERSE = "reverse"
+    MUTE_AUDIO = "mute-audio"
+    THUMBNAIL = "thumbnail"
+    CONTACT_SHEET = "contact-sheet"
+    EXTRACT_SUBTITLES = "extract-subtitles"
 
 
 OperationParams: TypeAlias = (
@@ -55,6 +75,12 @@ OperationParams: TypeAlias = (
     | StripMetadataParams
     | BlurParams
     | GrayscaleParams
+    | AdjustParams
+    | SharpenParams
+    | WatermarkParams
+    | UpscaleParams
+    | AutoOrientParams
+    | BackgroundParams
     | CutParams
     | VideoCompressParams
     | FpsParams
@@ -64,6 +90,10 @@ OperationParams: TypeAlias = (
     | GifParams
     | SpeedParams
     | ReverseParams
+    | MuteAudioParams
+    | ThumbnailParams
+    | ContactSheetParams
+    | ExtractSubtitlesParams
 )
 
 

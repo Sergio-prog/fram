@@ -1,11 +1,14 @@
 from pathlib import Path
 
-from PIL import Image, ImageFilter, ImageOps
+from PIL import Image, ImageColor, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 
 from fram.core.errors import InvalidOperation, UnsupportedFormat
 from fram.core.media import VECTOR_EXTENSIONS
 from fram.core.operations import (
+    AdjustParams,
     Anchor,
+    AutoOrientParams,
+    BackgroundParams,
     BlurParams,
     ConvertParams,
     CropParams,
@@ -17,7 +20,10 @@ from fram.core.operations import (
     ResizeMode,
     ResizeParams,
     RotateParams,
+    SharpenParams,
     StripMetadataParams,
+    UpscaleParams,
+    WatermarkParams,
 )
 from fram.core.processors.base import MediaProcessor
 from fram.utils.files import ensure_parent_dir
@@ -89,6 +95,22 @@ class ImageProcessor(MediaProcessor):
             case OperationName.GRAYSCALE:
                 self.expect(operation.params, GrayscaleParams)
                 return ImageOps.grayscale(image), None, {}
+            case OperationName.ADJUST:
+                return self.adjust(image, self.expect(operation.params, AdjustParams)), None, {}
+            case OperationName.SHARPEN:
+                params = self.expect(operation.params, SharpenParams)
+                return ImageEnhance.Sharpness(image).enhance(params.factor), None, {}
+            case OperationName.WATERMARK:
+                params = self.expect(operation.params, WatermarkParams)
+                return self.watermark(image, params), None, {}
+            case OperationName.UPSCALE:
+                return self.upscale(image, self.expect(operation.params, UpscaleParams)), None, {}
+            case OperationName.AUTO_ORIENT:
+                self.expect(operation.params, AutoOrientParams)
+                return ImageOps.exif_transpose(image), None, {}
+            case OperationName.BACKGROUND:
+                params = self.expect(operation.params, BackgroundParams)
+                return self.background(image, params), None, {}
             case _:
                 raise InvalidOperation(f"Operation {operation.name} is not valid for images.")
 
@@ -149,6 +171,76 @@ class ImageProcessor(MediaProcessor):
         if params.vertical:
             result = ImageOps.flip(result)
         return result
+
+    def adjust(self, image: Image.Image, params: AdjustParams) -> Image.Image:
+        result = ImageEnhance.Brightness(image).enhance(params.brightness)
+        return ImageEnhance.Contrast(result).enhance(params.contrast)
+
+    def watermark(self, image: Image.Image, params: WatermarkParams) -> Image.Image:
+        result = image.convert("RGBA")
+        overlay = Image.new("RGBA", result.size, (255, 255, 255, 0))
+        draw = ImageDraw.Draw(overlay)
+        font = self.watermark_font(params.size)
+        text_box = draw.textbbox((0, 0), params.text, font=font)
+        text_width = text_box[2] - text_box[0]
+        text_height = text_box[3] - text_box[1]
+        x, y = self.watermark_position(result.size, (text_width, text_height), params.position)
+        alpha = round(255 * params.opacity)
+        draw.text((x, y), params.text, fill=(255, 255, 255, alpha), font=font)
+        return Image.alpha_composite(result, overlay)
+
+    def watermark_font(self, size: int) -> ImageFont.ImageFont:
+        try:
+            return ImageFont.truetype("Arial.ttf", size)
+        except OSError:
+            return ImageFont.load_default()
+
+    def watermark_position(
+        self,
+        image_size: tuple[int, int],
+        text_size: tuple[int, int],
+        anchor: Anchor,
+    ) -> tuple[int, int]:
+        width, height = image_size
+        text_width, text_height = text_size
+        margin = max(12, min(width, height) // 40)
+
+        horizontal = {
+            Anchor.LEFT: margin,
+            Anchor.TOP_LEFT: margin,
+            Anchor.BOTTOM_LEFT: margin,
+            Anchor.RIGHT: width - text_width - margin,
+            Anchor.TOP_RIGHT: width - text_width - margin,
+            Anchor.BOTTOM_RIGHT: width - text_width - margin,
+        }.get(anchor, (width - text_width) // 2)
+        vertical = {
+            Anchor.TOP: margin,
+            Anchor.TOP_LEFT: margin,
+            Anchor.TOP_RIGHT: margin,
+            Anchor.BOTTOM: height - text_height - margin,
+            Anchor.BOTTOM_LEFT: height - text_height - margin,
+            Anchor.BOTTOM_RIGHT: height - text_height - margin,
+        }.get(anchor, (height - text_height) // 2)
+        return max(0, horizontal), max(0, vertical)
+
+    def upscale(self, image: Image.Image, params: UpscaleParams) -> Image.Image:
+        width, height = image.size
+        target = (round(width * params.factor), round(height * params.factor))
+        return image.resize(target, Image.Resampling.LANCZOS)
+
+    def background(self, image: Image.Image, params: BackgroundParams) -> Image.Image:
+        try:
+            color = ImageColor.getcolor(params.color, "RGBA")
+        except ValueError as exc:
+            raise InvalidOperation(f"Invalid background color: {params.color}") from exc
+
+        if image.mode not in {"RGBA", "LA"} and "transparency" not in image.info:
+            return image.convert("RGB")
+
+        rgba = image.convert("RGBA")
+        backdrop = Image.new("RGBA", rgba.size, color)
+        backdrop.alpha_composite(rgba)
+        return backdrop.convert("RGB")
 
     def normalize_format(self, value: str) -> str:
         normalized = value.lower().lstrip(".")

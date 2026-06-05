@@ -21,6 +21,12 @@ COMMAND_NAMES = {
     "strip-metadata",
     "blur",
     "grayscale",
+    "adjust",
+    "sharpen",
+    "watermark",
+    "upscale",
+    "auto-orient",
+    "background",
     "cut",
     "fps",
     "strip-audio",
@@ -29,6 +35,10 @@ COMMAND_NAMES = {
     "gif",
     "speed",
     "reverse",
+    "mute-audio",
+    "thumbnail",
+    "contact-sheet",
+    "extract-subtitles",
 }
 
 app = typer.Typer(
@@ -148,6 +158,63 @@ def grayscale(
 
 
 @app.command()
+def adjust(
+    file: Path,
+    brightness: Annotated[float, typer.Option("--brightness", "-b")] = 1.0,
+    contrast: Annotated[float, typer.Option("--contrast", "-c")] = 1.0,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.adjust_file(file, brightness, contrast, output))
+
+
+@app.command()
+def sharpen(
+    file: Path,
+    factor: Annotated[float, typer.Option("--factor", "-f")] = 2.0,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.sharpen_file(file, factor, output))
+
+
+@app.command()
+def watermark(
+    file: Path,
+    text: Annotated[str, typer.Argument(help="Watermark text.")],
+    opacity: Annotated[float, typer.Option("--opacity")] = 0.75,
+    position: Annotated[str, typer.Option("--position", "-p")] = "bottom-right",
+    size: Annotated[int, typer.Option("--size", "-s")] = 32,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.watermark_file(file, text, opacity, position, size, output))
+
+
+@app.command()
+def upscale(
+    file: Path,
+    factor: Annotated[float, typer.Option("--factor", "-f")] = 2.0,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.upscale_file(file, factor, output))
+
+
+@app.command("auto-orient")
+def auto_orient(
+    file: Path,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.auto_orient_file(file, output))
+
+
+@app.command()
+def background(
+    file: Path,
+    color: Annotated[str, typer.Argument(help="Background color, e.g. white or #ffffff.")],
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.background_file(file, color, output))
+
+
+@app.command()
 def cut(
     file: Path,
     start: Annotated[str, typer.Option("--start", "-s")],
@@ -218,6 +285,43 @@ def reverse(
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
     _print_result(lambda: commands.reverse_video_file(file, not no_audio, output))
+
+
+@app.command("mute-audio")
+def mute_audio(
+    file: Path,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.mute_audio_file(file, output))
+
+
+@app.command()
+def thumbnail(
+    file: Path,
+    at: Annotated[str, typer.Option("--at", "-a", help="Timestamp, e.g. 00:00:05.")] = "0",
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.thumbnail_file(file, at, output))
+
+
+@app.command("contact-sheet")
+def contact_sheet(
+    file: Path,
+    columns: Annotated[int, typer.Option("--columns", "-c")] = 3,
+    rows: Annotated[int, typer.Option("--rows", "-r")] = 3,
+    width: Annotated[int, typer.Option("--width", "-w")] = 320,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.contact_sheet_file(file, columns, rows, width, output))
+
+
+@app.command("extract-subtitles")
+def extract_subtitles(
+    file: Path,
+    stream_index: Annotated[int, typer.Option("--stream-index", "-s")] = 0,
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.extract_subtitles_file(file, stream_index, output))
 
 
 def _print_result(action: object) -> None:

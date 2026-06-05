@@ -2,7 +2,19 @@ from pathlib import Path
 
 from fram.core.metadata import collect_media_metadata
 from fram.core.operation_factory import (
+    adjust as adjust_operation,
+)
+from fram.core.operation_factory import (
+    auto_orient as auto_orient_operation,
+)
+from fram.core.operation_factory import (
+    background as background_operation,
+)
+from fram.core.operation_factory import (
     blur as blur_operation,
+)
+from fram.core.operation_factory import (
+    contact_sheet as contact_sheet_operation,
 )
 from fram.core.operation_factory import (
     convert as convert_operation,
@@ -18,6 +30,9 @@ from fram.core.operation_factory import (
 )
 from fram.core.operation_factory import (
     extract_frame as extract_frame_operation,
+)
+from fram.core.operation_factory import (
+    extract_subtitles as extract_subtitles_operation,
 )
 from fram.core.operation_factory import (
     flip as flip_operation,
@@ -36,6 +51,9 @@ from fram.core.operation_factory import (
     video_compress,
 )
 from fram.core.operation_factory import (
+    mute_audio as mute_audio_operation,
+)
+from fram.core.operation_factory import (
     resize as resize_operation,
 )
 from fram.core.operation_factory import (
@@ -45,6 +63,9 @@ from fram.core.operation_factory import (
     rotate as rotate_operation,
 )
 from fram.core.operation_factory import (
+    sharpen as sharpen_operation,
+)
+from fram.core.operation_factory import (
     speed as speed_operation,
 )
 from fram.core.operation_factory import (
@@ -52,6 +73,15 @@ from fram.core.operation_factory import (
 )
 from fram.core.operation_factory import (
     strip_metadata as strip_metadata_operation,
+)
+from fram.core.operation_factory import (
+    thumbnail as thumbnail_operation,
+)
+from fram.core.operation_factory import (
+    upscale as upscale_operation,
+)
+from fram.core.operation_factory import (
+    watermark as watermark_operation,
 )
 from fram.core.output import default_output_for_operations
 from fram.core.pipeline import run_pipeline
@@ -118,6 +148,52 @@ def grayscale_file(input_path: Path, output_path: Path | None) -> Path:
     return run_pipeline(input_path, [grayscale_operation()], output)
 
 
+def adjust_file(
+    input_path: Path,
+    brightness: float,
+    contrast: float,
+    output_path: Path | None,
+) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [adjust_operation(brightness, contrast)], output)
+
+
+def sharpen_file(input_path: Path, factor: float, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [sharpen_operation(factor)], output)
+
+
+def watermark_file(
+    input_path: Path,
+    text: str,
+    opacity: float,
+    position: str,
+    size: int,
+    output_path: Path | None,
+) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(
+        input_path,
+        [watermark_operation(text, opacity=opacity, position=position, size=size)],
+        output,
+    )
+
+
+def upscale_file(input_path: Path, factor: float, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [upscale_operation(factor)], output)
+
+
+def auto_orient_file(input_path: Path, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [auto_orient_operation()], output)
+
+
+def background_file(input_path: Path, color: str, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [background_operation(color)], output)
+
+
 def cut_video_file(
     input_path: Path,
     start: str,
@@ -165,3 +241,36 @@ def speed_video_file(input_path: Path, factor: float, output_path: Path | None) 
 def reverse_video_file(input_path: Path, include_audio: bool, output_path: Path | None) -> Path:
     output = output_path or default_output_path(input_path)
     return run_pipeline(input_path, [reverse_operation(include_audio)], output)
+
+
+def mute_audio_file(input_path: Path, output_path: Path | None) -> Path:
+    output = output_path or default_output_path(input_path)
+    return run_pipeline(input_path, [mute_audio_operation()], output)
+
+
+def thumbnail_file(input_path: Path, at: str, output_path: Path | None) -> Path:
+    operation = thumbnail_operation(at)
+    output = output_path or default_output_for_operations(input_path, [operation])
+    return run_pipeline(input_path, [operation], output)
+
+
+def contact_sheet_file(
+    input_path: Path,
+    columns: int,
+    rows: int,
+    width: int,
+    output_path: Path | None,
+) -> Path:
+    operation = contact_sheet_operation(columns, rows, width)
+    output = output_path or default_output_for_operations(input_path, [operation])
+    return run_pipeline(input_path, [operation], output)
+
+
+def extract_subtitles_file(
+    input_path: Path,
+    stream_index: int,
+    output_path: Path | None,
+) -> Path:
+    operation = extract_subtitles_operation(stream_index)
+    output = output_path or default_output_for_operations(input_path, [operation])
+    return run_pipeline(input_path, [operation], output)
