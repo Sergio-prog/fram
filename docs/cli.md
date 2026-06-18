@@ -41,6 +41,16 @@ fram resize --help
 fram help resize
 ```
 
+Updates:
+
+```bash
+fram update --check
+fram update
+fram update --from git+https://github.com/Sergio-prog/fram.git@v0.1.0
+```
+
+`fram update` uses `uv tool install --force` when `uv` is available, then falls back to `pipx install --force`. Normal commands and the TUI occasionally check GitHub Releases and show a small notice when a newer version exists. Set `FRAM_UPDATE_CHECK=0` to hide those checks.
+
 Interactive commands:
 
 ```bash
@@ -62,6 +72,7 @@ TUI sliders:
 ```text
 Tab         switch active slider
 Left/Right  adjust active slider
+p           toggle source/output preview after a run
 ```
 
 The cut slider writes the generated `start end` range into the params input when video duration can be read with `ffprobe`. Numeric sliders are available for actions like `adjust`, `compress`, `blur`, `fps`, `gif`, and `speed`.
@@ -70,4 +81,5 @@ Preview notes:
 
 - image files are shown directly
 - video files render a temporary preview frame with FFmpeg
+- after running a pipeline, the preview switches to the generated output and can be toggled back to the source
 - unsupported terminals may fall back inside `textual-image`

@@ -20,7 +20,7 @@ uv run --all-extras --group dev python -m pytest
 uv run --all-extras --group dev ruff check .
 ```
 
-The GitHub Actions publish workflow runs on version tags:
+The GitHub Actions publish workflow runs on version tags. It builds the package, creates a GitHub Release with generated notes and the `dist/` artifacts, then publishes to PyPI:
 
 ```bash
 git tag v0.1.0
@@ -28,6 +28,8 @@ git push origin v0.1.0
 ```
 
 Configure PyPI trusted publishing for the GitHub repository and the `pypi` environment before pushing the first release tag. The workflow publishes the files from `dist/` without storing a PyPI token in the repository.
+
+`fram update --check` and the lightweight command/TUI update notices read the latest GitHub Release, so every public release needs a `vX.Y.Z` GitHub Release. Set `FRAM_UPDATE_CHECK=0` to disable automatic checks locally.
 
 After publishing, test the package in an isolated CLI environment:
 

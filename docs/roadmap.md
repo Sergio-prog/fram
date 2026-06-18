@@ -7,19 +7,20 @@
 - Basic FastAPI processing endpoint
 - Basic aiogram structure
 - Initial Textual interactive shell
+- Video metadata probing
+- Two-sided TUI cut slider backed by duration
+- Core image/video operation builder tests
+- Bot callback and FSM parameter flow
 
 ## Next
 
-- Complete TUI operation editor and execution
-- Add video probe data for duration/FPS/size
-- Add two-sided cut slider backed by actual duration
-- Add bot callbacks and FSM parameter forms
-- Add tests for core image/video operation builders
+- Return processed files from the API instead of server-local paths
+- Keep operation adapter metadata centralized as new operations are added
+- Improve TUI preview workflows: source/output toggle, frame seek, and before/after comparison
+- Add target-file-size compression
 
 ## Later
 
 - SVG rasterization
-- target-file-size compression
-- richer preview controls: zoom, frame seek, before/after comparison
 - job queue for API/bot
 - deployment examples

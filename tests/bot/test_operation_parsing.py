@@ -1,6 +1,6 @@
 import pytest
 
-from fram.bot.services.operations import build_operation
+from fram.bot.services.operations import build_operation, build_operations, operation_spec
 from fram.core.errors import InvalidOperation
 from fram.core.media import MediaType
 from fram.core.operations import (
@@ -105,3 +105,20 @@ def test_build_new_image_operations_from_bot_input() -> None:
 def test_build_operation_rejects_bad_input() -> None:
     with pytest.raises(InvalidOperation):
         build_operation("fps", MediaType.VIDEO, "fast")
+
+
+def test_build_operations_replays_serializable_bot_specs() -> None:
+    operations = build_operations(
+        [
+            operation_spec("resize", "128x128"),
+            operation_spec("strip-metadata"),
+            operation_spec("convert", "webp"),
+        ],
+        MediaType.IMAGE,
+    )
+
+    assert [operation.name for operation in operations] == [
+        OperationName.RESIZE,
+        OperationName.STRIP_METADATA,
+        OperationName.CONVERT,
+    ]

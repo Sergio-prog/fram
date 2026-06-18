@@ -22,7 +22,7 @@ The bot downloads media to `FRAM_WORK_DIR/bot`, builds typed operations from use
 Supported flow:
 
 ```text
-media -> action keyboard -> params/confirm -> process -> result
+media -> action keyboard -> params/confirm -> add more or run -> result
 ```
 
 Message copy includes the author channel link:
@@ -31,7 +31,7 @@ Message copy includes the author channel link:
 📣 [Channel](https://t.me/there_is_no_meme)
 ```
 
-Current gap: only one operation is applied per bot request. Multi-step bot pipelines can be added later.
+The bot can collect multiple operations for one media file before running the shared pipeline.
 
 The bot exposes the same core operation family where a short text prompt can represent params.
 Generated outputs such as extracted frames, extracted audio, converted files, and GIFs choose a matching

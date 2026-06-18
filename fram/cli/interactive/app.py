@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 from textual import events
@@ -25,6 +26,7 @@ from fram.core.metadata import collect_media_metadata
 from fram.core.output import default_output_for_operations
 from fram.core.pipeline import run_pipeline
 from fram.core.probe import probe_duration_seconds
+from fram.updates import update_notice
 from fram.utils.timecodes import format_seconds
 
 
@@ -104,6 +106,7 @@ class FramInteractiveApp(App[None]):
         ("right", "move_slider_right", "Value +"),
         ("up", "previous_slider", "Slider ↑"),
         ("down", "next_slider", "Slider ↓"),
+        ("p", "toggle_preview_target", "Preview"),
         ("r", "run_pipeline", "Run"),
         ("q", "quit", "Quit"),
     ]
@@ -119,6 +122,7 @@ class FramInteractiveApp(App[None]):
         self.cut_slider = CutRangeSlider()
         self.param_sliders = NumericParamSliders()
         self.current_preview: PreviewImage | None = None
+        self.preview_target = "source"
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -152,9 +156,16 @@ class FramInteractiveApp(App[None]):
         else:
             self.query_one("#files", ListView).focus()
         self._refresh()
+        if sys.stderr.isatty():
+            self.run_worker(self._show_update_notice, thread=True)
 
     def on_unmount(self) -> None:
         cleanup_preview(self.current_preview)
+
+    def _show_update_notice(self) -> None:
+        notice = update_notice()
+        if notice:
+            self.call_from_thread(self.notify, notice, title="Update available")
 
     async def on_list_view_selected(self, event: ListView.Selected) -> None:
         item = event.item
@@ -226,6 +237,17 @@ class FramInteractiveApp(App[None]):
             self.state.operations.pop()
             self._refresh()
 
+    def action_toggle_preview_target(self) -> None:
+        if self.state.file is None or self.state.output_path is None:
+            return
+        if self.preview_target == "source":
+            self._set_preview(self.state.output_path)
+            self.preview_target = "output"
+        else:
+            self._set_preview(self.state.file)
+            self.preview_target = "source"
+        self._refresh()
+
     def action_previous_slider(self) -> None:
         self._switch_slider(-1)
 
@@ -278,6 +300,8 @@ class FramInteractiveApp(App[None]):
 
         self.state.output_path = result
         self.current_dir = result.parent
+        self._set_preview(result)
+        self.preview_target = "output"
         await self._load_files(selected_path=result)
         self.notify(f"Saved {result}")
         self._refresh()
@@ -320,16 +344,14 @@ class FramInteractiveApp(App[None]):
 
         duration = probe_duration_seconds(file) if media_type == MediaType.VIDEO else None
         metadata = collect_media_metadata(file)
-        cleanup_preview(self.current_preview)
-        self.current_preview = prepare_preview_image(file, media_type)
         self.state.reset_for_file(
             file,
             media_type,
             duration_seconds=duration,
             resolution=metadata.value("Resolution"),
-            preview_path=self.current_preview.path,
-            preview_error=self.current_preview.error,
         )
+        self._set_preview(file, media_type)
+        self.preview_target = "source"
         self.selected_action = None
         self.param_sliders.configure(None, self.state.media_type)
         self.query_one("#params", Input).value = ""
@@ -439,6 +461,16 @@ class FramInteractiveApp(App[None]):
         text.display = True
         text.update(self._preview_text())
 
+    def _set_preview(self, file: Path, media_type: MediaType | None = None) -> None:
+        cleanup_preview(self.current_preview)
+        try:
+            preview_media_type = media_type or detect_media_type(file)
+            self.current_preview = prepare_preview_image(file, preview_media_type)
+        except FramError as exc:
+            self.current_preview = PreviewImage(path=None, error=str(exc))
+        self.state.preview_path = self.current_preview.path
+        self.state.preview_error = self.current_preview.error
+
     def _refresh_cut_slider(self) -> None:
         is_cut = self.selected_action == "cut"
         self.cut_slider.display = is_cut
@@ -466,6 +498,7 @@ class FramInteractiveApp(App[None]):
             lines.insert(2, f"resolution {self.state.resolution}")
         if self.state.output_path:
             lines.append(f"last output: {self.state.output_path}")
+            lines.append(f"preview: {self.preview_target}")
         if self.state.duration_seconds is not None:
             lines.append(f"duration: {format_seconds(self.state.duration_seconds)}")
         return "\n".join(lines)

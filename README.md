@@ -100,6 +100,15 @@ fram resize --help
 fram help resize
 ```
 
+Updates:
+
+```bash
+fram update --check
+fram update
+```
+
+Fram checks GitHub Releases occasionally and prints a small notice in interactive terminals when a newer release exists. Set `FRAM_UPDATE_CHECK=0` to hide update checks.
+
 ## CLI Commands
 
 ### Images

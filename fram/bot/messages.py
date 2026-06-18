@@ -41,8 +41,29 @@ def action_prompt(action: str, media_type: MediaType) -> str:
         "gif": "GIF: send FPS and optional width, for example: <code>12 480</code>",
         "speed": "⏩ Send speed factor, for example: <code>2</code> or <code>0.5</code>",
         "reverse": "↩️ Tap Apply to reverse video.",
+        "mute-audio": "🔈 Tap Apply to mute audio.",
+        "thumbnail": "Send thumbnail timestamp, for example: <code>00:00:05</code>",
+        "contact-sheet": (
+            "Send columns, rows, and optional width, for example: <code>3 3 320</code>"
+        ),
+        "extract-subtitles": "Send subtitle stream index, for example: <code>0</code>",
+        "sharpen": "Send sharpen factor, for example: <code>2</code>",
+        "watermark": (
+            "Send watermark text, or text opacity position size, "
+            "for example: <code>FRAM 0.75 bottom-right 32</code>"
+        ),
+        "upscale": "Send upscale factor, for example: <code>2</code>",
+        "auto-orient": "Tap Apply to auto-orient the image.",
+        "background": (
+            "Send background color, for example: <code>white</code> or <code>#ffffff</code>"
+        ),
     }
     return prompts[action]
+
+
+def operation_added(count: int) -> str:
+    noun = "operation" if count == 1 else "operations"
+    return f"Added. Pipeline has <b>{count}</b> {noun}."
 
 
 def processing() -> str:

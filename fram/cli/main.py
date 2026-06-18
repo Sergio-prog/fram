@@ -4,13 +4,17 @@ from typing import Annotated
 
 import typer
 
+from fram import __version__
 from fram.cli import commands
 from fram.cli.interactive.app import run_interactive
 from fram.core.errors import FramError
+from fram.updates import check_for_update, install_latest_release, update_notice
 
 COMMAND_NAMES = {
     "help",
     "info",
+    "update",
+    "version",
     "resize",
     "crop",
     "compress-image",
@@ -57,7 +61,45 @@ def main() -> None:
     if len(args) == 1 and not args[0].startswith("-") and args[0] not in COMMAND_NAMES:
         run_interactive(Path(args[0]))
         return
+    _print_update_notice(args)
     app(args=args)
+
+
+@app.command()
+def version() -> None:
+    typer.echo(__version__)
+
+
+@app.command()
+def update(
+    check: Annotated[
+        bool,
+        typer.Option("--check", help="Only check whether an update is available."),
+    ] = False,
+    source: Annotated[
+        str | None,
+        typer.Option("--from", help="Install from a custom uv/pipx package source."),
+    ] = None,
+) -> None:
+    try:
+        if check:
+            status = check_for_update(use_cache=False, timeout_seconds=5.0)
+            if status.latest is None:
+                typer.echo("Could not find the latest GitHub release.")
+            elif status.is_available:
+                typer.echo(
+                    f"Fram {status.latest.version} is available "
+                    f"(current {status.current_version})."
+                )
+                typer.echo(f"Release: {status.latest.url}")
+            else:
+                typer.echo(f"Fram is up to date ({status.current_version}).")
+            return
+
+        typer.echo(install_latest_release(source))
+    except FramError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
 
 
 @app.command()
@@ -331,3 +373,14 @@ def _print_result(action: object) -> None:
         typer.echo(f"Error: {exc}", err=True)
         raise typer.Exit(1) from exc
     typer.echo(result)
+
+
+def _print_update_notice(args: list[str]) -> None:
+    if not sys.stderr.isatty():
+        return
+    if not args or args[0] in {"help", "update", "version"} or "--help" in args or "-h" in args:
+        return
+
+    notice = update_notice()
+    if notice:
+        typer.echo(notice, err=True)

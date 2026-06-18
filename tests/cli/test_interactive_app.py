@@ -1,6 +1,7 @@
 import asyncio
 from pathlib import Path
 
+from PIL import Image
 from textual.widgets import Input, ListView
 
 import fram.cli.interactive.app as interactive_app
@@ -28,13 +29,13 @@ def test_pipeline_run_refreshes_file_browser(tmp_path, monkeypatch) -> None:
 async def _run_pipeline_and_check_files(tmp_path, monkeypatch) -> None:
     input_path = tmp_path / "image.png"
     output_path = tmp_path / "image-small.png"
-    input_path.write_bytes(b"input")
+    Image.new("RGB", (10, 10), color="black").save(input_path)
 
     def fake_run_pipeline(source: Path, operations, destination: Path) -> Path:
         assert source == input_path
         assert destination == output_path
         assert operations
-        output_path.write_bytes(b"output")
+        Image.new("RGB", (10, 10), color="white").save(output_path)
         return output_path
 
     monkeypatch.setattr(interactive_app, "run_pipeline", fake_run_pipeline)
@@ -58,6 +59,31 @@ async def _run_pipeline_and_check_files(tmp_path, monkeypatch) -> None:
         ]
         assert "image-small.png" in values
         assert file_list.index == values.index("image-small.png")
+        assert app.preview_target == "output"
+
+
+def test_preview_toggle_switches_between_source_and_output(tmp_path) -> None:
+    asyncio.run(_toggle_preview_and_check_state(tmp_path))
+
+
+async def _toggle_preview_and_check_state(tmp_path) -> None:
+    input_path = tmp_path / "image.png"
+    output_path = tmp_path / "image-small.png"
+    Image.new("RGB", (10, 10), color="black").save(input_path)
+    Image.new("RGB", (10, 10), color="white").save(output_path)
+
+    app = FramInteractiveApp()
+    async with app.run_test():
+        app.state.file = input_path
+        app.state.media_type = MediaType.IMAGE
+        app.state.output_path = output_path
+        app._set_preview(output_path, MediaType.IMAGE)
+        app.preview_target = "output"
+
+        app.action_toggle_preview_target()
+
+        assert app.preview_target == "source"
+        assert app.state.preview_path == input_path
 
 
 def test_adjust_slider_updates_params_input() -> None:

@@ -1,3 +1,4 @@
+from fram.core.action_registry import ACTION_BY_NAME, actions_for_media
 from fram.core.errors import InvalidOperation
 from fram.core.media import MediaType
 from fram.core.operation_factory import (
@@ -32,140 +33,15 @@ from fram.core.operation_factory import (
 )
 from fram.core.operations import Operation, OperationName
 
-IMAGE_ACTIONS = [
-    "resize",
-    "crop",
-    "compress",
-    "convert",
-    "rotate",
-    "flip",
-    "strip-metadata",
-    "blur",
-    "grayscale",
-    "adjust",
-    "sharpen",
-    "watermark",
-    "upscale",
-    "auto-orient",
-    "background",
-]
-VIDEO_ACTIONS = [
-    "cut",
-    "resize",
-    "crop",
-    "fps",
-    "compress",
-    "convert",
-    "strip-audio",
-    "strip-metadata",
-    "blur",
-    "grayscale",
-    "extract-audio",
-    "extract-frame",
-    "gif",
-    "speed",
-    "reverse",
-    "mute-audio",
-    "thumbnail",
-    "contact-sheet",
-    "extract-subtitles",
-]
-
-ACTION_LABELS = {
-    "resize": "📐 resize",
-    "crop": "✂️ crop",
-    "compress": "🗜 compress",
-    "cut": "🎞 cut",
-    "fps": "🎚 fps",
-    "strip-audio": "🔇 strip-audio",
-    "strip-metadata": "🧹 strip-metadata",
-    "blur": "🌫 blur",
-    "grayscale": "⚫ grayscale",
-    "adjust": "☀ adjust",
-    "sharpen": "△ sharpen",
-    "watermark": "WM watermark",
-    "upscale": "⤢ upscale",
-    "auto-orient": "↟ auto-orient",
-    "background": "▣ background",
-    "convert": "🔁 convert",
-    "rotate": "↻ rotate",
-    "flip": "↔ flip",
-    "extract-audio": "🎧 extract-audio",
-    "extract-frame": "🖼 extract-frame",
-    "gif": "🎞 GIF",
-    "speed": "⏩ speed",
-    "reverse": "↩ reverse",
-    "mute-audio": "🔈 mute-audio",
-    "thumbnail": "▣ thumbnail",
-    "contact-sheet": "▦ contact-sheet",
-    "extract-subtitles": "CC extract-subtitles",
-}
-
-ACTION_HELP = {
-    "resize": "size [mode], e.g. 128x128 fit",
-    "crop": "size [anchor], e.g. 128x128 center",
-    "compress": "image quality 1..100 or video CRF 0..51",
-    "cut": "start end, or start duration value",
-    "fps": "frames per second, e.g. 24",
-    "strip-audio": "no params; press add/apply",
-    "strip-metadata": "no params; press add/apply",
-    "blur": "radius, e.g. 2",
-    "grayscale": "no params; press add/apply",
-    "adjust": "brightness [contrast], e.g. 1.1 1.2",
-    "sharpen": "factor, e.g. 2",
-    "watermark": "text [opacity position size]",
-    "upscale": "factor, e.g. 2",
-    "auto-orient": "no params; press add/apply",
-    "background": "color, e.g. white or #ffffff",
-    "convert": "format, e.g. webp, png, jpg, gif, mp4",
-    "rotate": "clockwise degrees, e.g. 90",
-    "flip": "horizontal, vertical, or both",
-    "extract-audio": "no params; press add/apply",
-    "extract-frame": "timestamp, e.g. 00:00:05",
-    "gif": "fps [width], e.g. 12 480",
-    "speed": "factor, e.g. 2 or 0.5",
-    "reverse": "no params, or no-audio",
-    "mute-audio": "no params; press add/apply",
-    "thumbnail": "timestamp, e.g. 00:00:05",
-    "contact-sheet": "columns rows [width], e.g. 3 3 320",
-    "extract-subtitles": "stream index, e.g. 0",
-}
-
-VALUE_PRESETS = {
-    "resize": ["128x128 fit", "512x512 fit", "1024x1024 fit", "1280x720 exact"],
-    "crop": ["128x128 center", "512x512 center", "1080x1080 center"],
-    "compress": ["82", "70", "50", "23"],
-    "cut": ["slider range", "5 10", "0 duration 10"],
-    "fps": ["24", "30", "60"],
-    "strip-audio": ["apply"],
-    "strip-metadata": ["apply"],
-    "blur": ["2", "5", "10"],
-    "grayscale": ["apply"],
-    "adjust": ["1.1 1.1", "0.9 1.2", "1.2 1"],
-    "sharpen": ["2", "3", "0"],
-    "watermark": ["FRAM 0.75 bottom-right 32"],
-    "upscale": ["2", "1.5", "3"],
-    "auto-orient": ["apply"],
-    "background": ["white", "#ffffff", "black"],
-    "convert": ["webp", "png", "jpg", "mp4", "gif"],
-    "rotate": ["90", "180", "270"],
-    "flip": ["horizontal", "vertical", "both"],
-    "extract-audio": ["apply"],
-    "extract-frame": ["00:00:05", "5"],
-    "gif": ["12", "12 480", "15 720"],
-    "speed": ["2", "0.5", "1.25"],
-    "reverse": ["apply", "no-audio"],
-    "mute-audio": ["apply"],
-    "thumbnail": ["00:00:05", "5"],
-    "contact-sheet": ["3 3 320", "4 4 240"],
-    "extract-subtitles": ["0"],
-}
+ACTION_LABELS = {name: spec.cli_label for name, spec in ACTION_BY_NAME.items()}
+ACTION_HELP = {name: spec.help_text for name, spec in ACTION_BY_NAME.items()}
+VALUE_PRESETS = {name: list(spec.presets) for name, spec in ACTION_BY_NAME.items()}
 
 
 def actions_for(media_type: MediaType | None) -> list[str]:
-    if media_type == MediaType.VIDEO:
-        return VIDEO_ACTIONS
-    return IMAGE_ACTIONS
+    if media_type is None:
+        return actions_for_media(MediaType.IMAGE)
+    return actions_for_media(media_type)
 
 
 def value_presets_for(action: str, slider_value: str = "") -> list[str]:
