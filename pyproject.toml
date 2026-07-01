@@ -1,7 +1,7 @@
 [project]
 name = "fram"
 version = "0.1.0"
-description = "A compact media workshop for terminal, API, and Telegram."
+description = "A compact media workshop for terminal and agent automation."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
@@ -22,17 +22,6 @@ dependencies = [
   "textual>=0.58",
   "textual-image[textual]>=0.12",
   "typer>=0.12",
-]
-
-[project.optional-dependencies]
-api = [
-  "fastapi>=0.111",
-  "python-multipart>=0.0.9",
-  "uvicorn>=0.30",
-]
-bot = [
-  "aiogram>=3.4",
-  "pydantic-settings>=2.2",
 ]
 
 [project.urls]

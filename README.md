@@ -9,17 +9,17 @@
   <img src="media/preview.png" alt="preview of TUI" />
 </p>
 
-A compact media workshop for your terminal, API, and Telegram.
+A compact media workshop for your terminal and agent automation.
 
-Fram crops, resizes, compresses, and converts images; cuts, resizes, crops, compresses, changes FPS, strips audio, extracts frames, and makes GIFs from videos. The CLI, FastAPI app, and Telegram bot use the same typed processing core.
+Fram crops, resizes, compresses, and converts images; cuts, resizes, crops, compresses, changes FPS, strips audio, extracts frames, and makes GIFs from videos. The CLI uses a typed processing core.
 
-> Early hobby project. The strict CLI is the main focus right now; the API, Telegram bot flow, and basic interactive TUI also exist.
+> Early hobby project. The strict CLI and basic interactive TUI are the main focus.
 
 ## Highlights
 
 - Scriptable CLI commands for image and video edits.
 - Interactive terminal UI for quick manual workflows.
-- Shared core used by CLI, API, and Telegram bot.
+- Shared core used by the CLI.
 - FFmpeg-backed video processing with Pillow-backed image operations.
 - Small codebase intended to stay hackable.
 
@@ -173,50 +173,6 @@ TUI shortcuts:
 - `r`: run
 - `q`: quit
 
-## API
-
-Install the API extra when running from a checkout:
-
-```bash
-uv sync --extra api
-```
-
-Run locally:
-
-```bash
-uv run uvicorn fram.api.main:app --reload
-```
-
-Token auth is optional. If `FRAM_API_TOKEN` is set, requests must include:
-
-```http
-Authorization: Bearer <token>
-```
-
-Process media:
-
-```bash
-curl -F "file=@image.jpg" \
-  -F 'operations=[{"name":"resize","size":"128x128","mode":"fit"}]' \
-  http://localhost:8000/media/process
-```
-
-## Telegram Bot
-
-Install the bot extra when running from a checkout:
-
-```bash
-uv sync --extra bot
-```
-
-Set `FRAM_BOT_TOKEN`, then:
-
-```bash
-uv run python -m fram.bot.main
-```
-
-Polling is the default. Webhook mode uses `FRAM_BOT_MODE=webhook` and `FRAM_BOT_WEBHOOK_URL`.
-
 ## Supported Media
 
 Images:
@@ -242,8 +198,6 @@ Docs:
 
 - [Architecture](docs/architecture.md)
 - [CLI](docs/cli.md)
-- [API](docs/api.md)
-- [Bot](docs/bot.md)
 - [Media Support](docs/media-support.md)
 - [Roadmap](docs/roadmap.md)
 - [Releasing](docs/releasing.md)
