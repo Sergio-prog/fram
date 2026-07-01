@@ -43,10 +43,11 @@ COMMAND_NAMES = {
     "thumbnail",
     "contact-sheet",
     "extract-subtitles",
+    "do",
 }
 
 app = typer.Typer(
-    help="Compact media editing from terminal, API, and Telegram.",
+    help="Compact media editing for your terminal and agent automation.",
 )
 
 
@@ -364,6 +365,18 @@ def extract_subtitles(
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
     _print_result(lambda: commands.extract_subtitles_file(file, stream_index, output))
+
+
+@app.command("do")
+def do(
+    file: Path,
+    steps: Annotated[
+        list[str],
+        typer.Argument(help='Operations, e.g. "resize 800x800" grayscale "convert webp".'),
+    ],
+    output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
+) -> None:
+    _print_result(lambda: commands.do_chain(file, steps, output))
 
 
 def _print_result(action: object) -> None:
