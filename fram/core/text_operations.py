@@ -1,4 +1,3 @@
-from fram.core.action_registry import no_value_actions
 from fram.core.errors import InvalidOperation
 from fram.core.media import MediaType
 from fram.core.operation_factory import (
@@ -32,9 +31,6 @@ from fram.core.operation_factory import (
     watermark,
 )
 from fram.core.operations import Operation
-
-NO_PARAM_ACTIONS = no_value_actions()
-OperationSpecData = dict[str, str | None]
 
 
 def build_operation(action: str, media_type: MediaType, raw_value: str | None = None) -> Operation:
@@ -98,18 +94,16 @@ def build_operation(action: str, media_type: MediaType, raw_value: str | None = 
     raise InvalidOperation(f"Unknown action: {action}")
 
 
-def operation_spec(action: str, raw_value: str | None = None) -> OperationSpecData:
-    return {"action": action, "value": raw_value}
-
-
-def build_operations(
-    specs: list[OperationSpecData],
-    media_type: MediaType,
-) -> list[Operation]:
-    return [
-        build_operation(str(spec["action"]), media_type, spec.get("value"))
-        for spec in specs
-    ]
+def parse_chain(steps: list[str], media_type: MediaType) -> list[Operation]:
+    if not steps:
+        raise InvalidOperation("Provide at least one operation.")
+    result = []
+    for step in steps:
+        parts = step.split(maxsplit=1)
+        action = parts[0]
+        raw_value = parts[1] if len(parts) == 2 else None
+        result.append(build_operation(action, media_type, raw_value))
+    return result
 
 
 def _build_crop(value: str) -> Operation:

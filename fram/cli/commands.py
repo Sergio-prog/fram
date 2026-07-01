@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from fram.core.media import detect_media_type
 from fram.core.metadata import collect_media_metadata
 from fram.core.operation_factory import (
     adjust as adjust_operation,
@@ -85,6 +86,7 @@ from fram.core.operation_factory import (
 )
 from fram.core.output import default_output_for_operations
 from fram.core.pipeline import run_pipeline
+from fram.core.text_operations import parse_chain
 from fram.utils.files import default_output_path
 
 
@@ -274,3 +276,10 @@ def extract_subtitles_file(
     operation = extract_subtitles_operation(stream_index)
     output = output_path or default_output_for_operations(input_path, [operation])
     return run_pipeline(input_path, [operation], output)
+
+
+def do_chain(input_path: Path, steps: list[str], output_path: Path | None) -> Path:
+    media_type = detect_media_type(input_path)
+    operations = parse_chain(steps, media_type)
+    output = output_path or default_output_for_operations(input_path, operations)
+    return run_pipeline(input_path, operations, output)
