@@ -20,6 +20,7 @@ Fram crops, resizes, compresses, and converts images; cuts, resizes, crops, comp
 - Scriptable CLI commands for image and video edits.
 - Interactive terminal UI for quick manual workflows.
 - Shared core used by CLI, API, and Telegram bot.
+- Bundled agent skill so AI coding agents can drive Fram directly.
 - FFmpeg-backed video processing with Pillow-backed image operations.
 - Small codebase intended to stay hackable.
 
@@ -80,6 +81,19 @@ uv --version
 uv sync --all-extras
 uv run fram --help
 ```
+
+## Agent Skill
+
+Fram ships an agent skill at [`skills/SKILL.md`](skills/SKILL.md) so AI coding agents (Claude Code, and any tool that reads the [Agent Skills](https://code.claude.com/docs/en/skills) format) can discover and drive the CLI.
+
+Install it for Claude Code by copying the skill into your skills directory:
+
+```bash
+mkdir -p ~/.claude/skills/fram
+cp skills/SKILL.md ~/.claude/skills/fram/SKILL.md
+```
+
+Use `.claude/skills/fram/` inside a project instead of `~/.claude/skills/` to scope it to a single repository. Once installed, the agent picks up Fram automatically when a task involves inspecting or editing local image and video files.
 
 ## Quick Start
 
