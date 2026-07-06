@@ -6,7 +6,15 @@
 [![Media: FFmpeg](https://img.shields.io/badge/media-FFmpeg-007808?logo=ffmpeg&logoColor=white)](https://ffmpeg.org/)
 
 <p align="center">
-  <img src="media/preview.png" alt="preview of TUI" />
+  <div align="center" style="margin-bottom: 20px">
+    <img src="media/fram-showcase.svg" alt="preview of commands" />
+    <em>Example of commands</em>
+  </div>
+
+  <div align="center">
+    <img src="media/preview.png" alt="preview of TUI" />
+    <em>Preview of TUI</em>
+  </div>
 </p>
 
 A compact media workshop for your terminal and agent automation.
@@ -89,8 +97,7 @@ Fram ships an agent skill at [`skills/SKILL.md`](skills/SKILL.md) so AI coding a
 Install it for Claude Code by copying the skill into your skills directory:
 
 ```bash
-mkdir -p ~/.claude/skills/fram
-cp skills/SKILL.md ~/.claude/skills/fram/SKILL.md
+npx skills add Sergio-prog/fram
 ```
 
 Use `.claude/skills/fram/` inside a project instead of `~/.claude/skills/` to scope it to a single repository. Once installed, the agent picks up Fram automatically when a task involves inspecting or editing local image and video files.
