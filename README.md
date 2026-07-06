@@ -6,15 +6,13 @@
 [![Media: FFmpeg](https://img.shields.io/badge/media-FFmpeg-007808?logo=ffmpeg&logoColor=white)](https://ffmpeg.org/)
 
 <p align="center">
-  <div align="center" style="margin-bottom: 20px">
-    <img src="media/fram-showcase.svg" alt="preview of commands" />
-    <em>Example of commands</em>
-  </div>
+  <img src="media/fram-showcase.svg" alt="preview of commands" />
+  <em>Example of commands</em>
+</p>
 
-  <div align="center">
-    <img src="media/preview.png" alt="preview of TUI" />
-    <em>Preview of TUI</em>
-  </div>
+<p align="center">
+  <img src="media/preview.png" alt="preview of TUI" />
+  <em>Preview of TUI</em>
 </p>
 
 A compact media workshop for your terminal and agent automation.
