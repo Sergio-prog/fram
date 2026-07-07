@@ -50,6 +50,7 @@ include = [
   "/fram",
   "/docs",
   "/scripts/install.sh",
+  "/scripts/install.ps1",
   "/LICENSE",
   "/README.md",
   "/pyproject.toml",

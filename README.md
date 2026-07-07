@@ -46,6 +46,12 @@ Install with the script:
 curl -LsSf https://fram.serhiifotex.dev/install.sh | sh
 ```
 
+Windows PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://fram.serhiifotex.dev/install.ps1 | iex"
+```
+
 Homebrew support is planned through a tap, which will install FFmpeg automatically:
 
 ```bash

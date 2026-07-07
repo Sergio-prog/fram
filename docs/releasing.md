@@ -55,15 +55,26 @@ From the public install endpoint:
 curl -LsSf https://fram.serhiifotex.dev/install.sh | sh
 ```
 
+Windows PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://fram.serhiifotex.dev/install.ps1 | iex"
+```
+
 After a PyPI release, the script can be pointed at the PyPI package:
 
 ```bash
 FRAM_PACKAGE_SPEC=fram scripts/install.sh
 ```
 
-## Hosting install.sh
+```powershell
+$env:FRAM_PACKAGE_SPEC = "fram"; irm https://fram.serhiifotex.dev/install.ps1 | iex
+```
 
-The install endpoint can be a plain static file. It should serve the current `scripts/install.sh` over HTTPS.
+## Hosting install scripts
+
+The install endpoint can be a plain static file. It should serve the current
+`scripts/install.sh` and `scripts/install.ps1` over HTTPS.
 
 DNS:
 
@@ -80,6 +91,7 @@ fram.serhiifotex.dev {
   file_server
 
   header /install.sh Content-Type "text/x-shellscript; charset=utf-8"
+  header /install.ps1 Content-Type "text/plain; charset=utf-8"
 }
 ```
 
@@ -103,6 +115,12 @@ server {
         add_header Cache-Control "public, max-age=300";
         try_files /install.sh =404;
     }
+
+    location = /install.ps1 {
+        default_type text/plain;
+        add_header Cache-Control "public, max-age=300";
+        try_files /install.ps1 =404;
+    }
 }
 ```
 
@@ -111,7 +129,9 @@ Deploy the file:
 ```bash
 sudo mkdir -p /srv/fram
 sudo cp scripts/install.sh /srv/fram/install.sh
+sudo cp scripts/install.ps1 /srv/fram/install.ps1
 sudo chmod 0644 /srv/fram/install.sh
+sudo chmod 0644 /srv/fram/install.ps1
 ```
 
 Smoke test:
@@ -120,7 +140,13 @@ Smoke test:
 curl -LsSf https://fram.serhiifotex.dev/install.sh | sh -s -- --help
 ```
 
-For automatic deploys, add a small release job or server-side pull script that copies `scripts/install.sh` from the tagged release. Keep the endpoint boring: static file, HTTPS, short cache, no server-side logic.
+```powershell
+powershell -ExecutionPolicy Bypass -c "$script = irm https://fram.serhiifotex.dev/install.ps1; & ([scriptblock]::Create($script)) -Help"
+```
+
+For automatic deploys, add a small release job or server-side pull script that copies
+`scripts/install.sh` and `scripts/install.ps1` from the tagged release. Keep the endpoint
+boring: static file, HTTPS, short cache, no server-side logic.
 
 ## Homebrew
 

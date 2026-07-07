@@ -1,4 +1,6 @@
 import sys
+import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated
 
@@ -6,6 +8,12 @@ import typer
 
 from fram import __version__
 from fram.cli import commands
+from fram.cli.formatting import (
+    format_error,
+    format_info_text,
+    format_processed_path,
+    should_color,
+)
 from fram.cli.interactive.app import run_interactive
 from fram.core.errors import FramError
 from fram.updates import check_for_update, install_latest_release, update_notice
@@ -105,7 +113,7 @@ def update(
 
 @app.command()
 def info(file: Path) -> None:
-    _print_result(lambda: commands.media_info(file))
+    _print_info_result(lambda: commands.media_info(file))
 
 
 @app.command()
@@ -115,7 +123,7 @@ def resize(
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
     mode: Annotated[str, typer.Option("--mode", "-m")] = "fit",
 ) -> None:
-    _print_result(lambda: commands.resize_file(file, size, mode, output))
+    _print_result(lambda: commands.resize_file(file, size, mode, output), source=file)
 
 
 @app.command()
@@ -125,7 +133,7 @@ def crop(
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
     anchor: Annotated[str, typer.Option("--anchor", "-a")] = "center",
 ) -> None:
-    _print_result(lambda: commands.crop_file(file, size, anchor, output))
+    _print_result(lambda: commands.crop_file(file, size, anchor, output), source=file)
 
 
 @app.command("compress-image")
@@ -134,7 +142,11 @@ def compress_image(
     quality: Annotated[int, typer.Option("--quality", "-q")] = 82,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.compress_image_file(file, quality, output))
+    _print_result(
+        lambda: commands.compress_image_file(file, quality, output),
+        source=file,
+        compare_size=True,
+    )
 
 
 @app.command("compress-video")
@@ -144,7 +156,11 @@ def compress_video(
     preset: Annotated[str, typer.Option("--preset")] = "medium",
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.compress_video_file(file, crf, preset, output))
+    _print_result(
+        lambda: commands.compress_video_file(file, crf, preset, output),
+        source=file,
+        compare_size=True,
+    )
 
 
 @app.command()
@@ -153,7 +169,11 @@ def convert(
     format_name: Annotated[str, typer.Argument(help="Output format, e.g. jpg, png, webp.")],
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.convert_file(file, format_name, output))
+    _print_result(
+        lambda: commands.convert_file(file, format_name, output),
+        source=file,
+        compare_size=True,
+    )
 
 
 @app.command()
@@ -162,7 +182,7 @@ def rotate(
     degrees: Annotated[int, typer.Argument(help="Clockwise rotation degrees.")],
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.rotate_file(file, degrees, output))
+    _print_result(lambda: commands.rotate_file(file, degrees, output), source=file)
 
 
 @app.command()
@@ -172,7 +192,7 @@ def flip(
     vertical: Annotated[bool, typer.Option("--vertical", "-y")] = False,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.flip_file(file, horizontal, vertical, output))
+    _print_result(lambda: commands.flip_file(file, horizontal, vertical, output), source=file)
 
 
 @app.command("strip-metadata")
@@ -180,7 +200,11 @@ def strip_metadata(
     file: Path,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.strip_metadata_file(file, output))
+    _print_result(
+        lambda: commands.strip_metadata_file(file, output),
+        source=file,
+        compare_size=True,
+    )
 
 
 @app.command()
@@ -189,7 +213,7 @@ def blur(
     radius: Annotated[float, typer.Option("--radius", "-r")] = 2.0,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.blur_file(file, radius, output))
+    _print_result(lambda: commands.blur_file(file, radius, output), source=file)
 
 
 @app.command()
@@ -197,7 +221,7 @@ def grayscale(
     file: Path,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.grayscale_file(file, output))
+    _print_result(lambda: commands.grayscale_file(file, output), source=file)
 
 
 @app.command()
@@ -207,7 +231,7 @@ def adjust(
     contrast: Annotated[float, typer.Option("--contrast", "-c")] = 1.0,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.adjust_file(file, brightness, contrast, output))
+    _print_result(lambda: commands.adjust_file(file, brightness, contrast, output), source=file)
 
 
 @app.command()
@@ -216,7 +240,7 @@ def sharpen(
     factor: Annotated[float, typer.Option("--factor", "-f")] = 2.0,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.sharpen_file(file, factor, output))
+    _print_result(lambda: commands.sharpen_file(file, factor, output), source=file)
 
 
 @app.command()
@@ -228,7 +252,10 @@ def watermark(
     size: Annotated[int, typer.Option("--size", "-s")] = 32,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.watermark_file(file, text, opacity, position, size, output))
+    _print_result(
+        lambda: commands.watermark_file(file, text, opacity, position, size, output),
+        source=file,
+    )
 
 
 @app.command()
@@ -237,7 +264,7 @@ def upscale(
     factor: Annotated[float, typer.Option("--factor", "-f")] = 2.0,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.upscale_file(file, factor, output))
+    _print_result(lambda: commands.upscale_file(file, factor, output), source=file)
 
 
 @app.command("auto-orient")
@@ -245,7 +272,7 @@ def auto_orient(
     file: Path,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.auto_orient_file(file, output))
+    _print_result(lambda: commands.auto_orient_file(file, output), source=file)
 
 
 @app.command()
@@ -254,7 +281,7 @@ def background(
     color: Annotated[str, typer.Argument(help="Background color, e.g. white or #ffffff.")],
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.background_file(file, color, output))
+    _print_result(lambda: commands.background_file(file, color, output), source=file)
 
 
 @app.command()
@@ -265,7 +292,7 @@ def cut(
     duration: Annotated[str | None, typer.Option("--duration", "-d")] = None,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.cut_video_file(file, start, end, duration, output))
+    _print_result(lambda: commands.cut_video_file(file, start, end, duration, output), source=file)
 
 
 @app.command()
@@ -274,7 +301,7 @@ def fps(
     value: Annotated[int, typer.Argument(help="Target frames per second.")],
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.fps_video_file(file, value, output))
+    _print_result(lambda: commands.fps_video_file(file, value, output), source=file)
 
 
 @app.command("strip-audio")
@@ -282,7 +309,7 @@ def strip_audio(
     file: Path,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.strip_audio_file(file, output))
+    _print_result(lambda: commands.strip_audio_file(file, output), source=file)
 
 
 @app.command("extract-audio")
@@ -290,7 +317,7 @@ def extract_audio(
     file: Path,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.extract_audio_file(file, output))
+    _print_result(lambda: commands.extract_audio_file(file, output), source=file)
 
 
 @app.command("extract-frame")
@@ -299,7 +326,7 @@ def extract_frame(
     at: Annotated[str, typer.Option("--at", "-a", help="Timestamp, e.g. 00:00:05.")],
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.extract_frame_file(file, at, output))
+    _print_result(lambda: commands.extract_frame_file(file, at, output), source=file)
 
 
 @app.command()
@@ -309,7 +336,7 @@ def gif(
     width: Annotated[int | None, typer.Option("--width")] = None,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.gif_file(file, fps, width, output))
+    _print_result(lambda: commands.gif_file(file, fps, width, output), source=file)
 
 
 @app.command()
@@ -318,7 +345,7 @@ def speed(
     factor: Annotated[float, typer.Argument(help="Speed factor, e.g. 2 or 0.5.")],
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.speed_video_file(file, factor, output))
+    _print_result(lambda: commands.speed_video_file(file, factor, output), source=file)
 
 
 @app.command()
@@ -327,7 +354,7 @@ def reverse(
     no_audio: Annotated[bool, typer.Option("--no-audio")] = False,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.reverse_video_file(file, not no_audio, output))
+    _print_result(lambda: commands.reverse_video_file(file, not no_audio, output), source=file)
 
 
 @app.command("mute-audio")
@@ -335,7 +362,7 @@ def mute_audio(
     file: Path,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.mute_audio_file(file, output))
+    _print_result(lambda: commands.mute_audio_file(file, output), source=file)
 
 
 @app.command()
@@ -344,7 +371,7 @@ def thumbnail(
     at: Annotated[str, typer.Option("--at", "-a", help="Timestamp, e.g. 00:00:05.")] = "0",
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.thumbnail_file(file, at, output))
+    _print_result(lambda: commands.thumbnail_file(file, at, output), source=file)
 
 
 @app.command("contact-sheet")
@@ -355,7 +382,10 @@ def contact_sheet(
     width: Annotated[int, typer.Option("--width", "-w")] = 320,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.contact_sheet_file(file, columns, rows, width, output))
+    _print_result(
+        lambda: commands.contact_sheet_file(file, columns, rows, width, output),
+        source=file,
+    )
 
 
 @app.command("extract-subtitles")
@@ -364,7 +394,7 @@ def extract_subtitles(
     stream_index: Annotated[int, typer.Option("--stream-index", "-s")] = 0,
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.extract_subtitles_file(file, stream_index, output))
+    _print_result(lambda: commands.extract_subtitles_file(file, stream_index, output), source=file)
 
 
 @app.command("do")
@@ -376,16 +406,43 @@ def do(
     ],
     output: Annotated[Path | None, typer.Option("--output", "-o")] = None,
 ) -> None:
-    _print_result(lambda: commands.do_chain(file, steps, output))
+    _print_result(lambda: commands.do_chain(file, steps, output), source=file, compare_size=True)
 
 
-def _print_result(action: object) -> None:
+def _print_result(
+    action: Callable[[], object],
+    *,
+    source: Path | None = None,
+    compare_size: bool = False,
+) -> None:
+    started_at = time.perf_counter()
     try:
         result = action()
     except FramError as exc:
-        typer.echo(f"Error: {exc}", err=True)
+        typer.echo(format_error(exc, color=should_color(sys.stderr)), err=True, color=True)
         raise typer.Exit(1) from exc
-    typer.echo(result)
+
+    elapsed_seconds = time.perf_counter() - started_at
+    if isinstance(result, Path):
+        output = format_processed_path(
+            result,
+            source=source,
+            elapsed_seconds=elapsed_seconds,
+            compare_size=compare_size,
+            color=should_color(),
+        )
+    else:
+        output = str(result)
+    typer.echo(output, color=True)
+
+
+def _print_info_result(action: Callable[[], str]) -> None:
+    try:
+        result = action()
+    except FramError as exc:
+        typer.echo(format_error(exc, color=should_color(sys.stderr)), err=True, color=True)
+        raise typer.Exit(1) from exc
+    typer.echo(format_info_text(result, color=should_color()), color=True)
 
 
 def _print_update_notice(args: list[str]) -> None:
