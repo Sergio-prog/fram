@@ -221,6 +221,10 @@ Docs:
 - [Roadmap](docs/roadmap.md)
 - [Releasing](docs/releasing.md)
 
+## See Also
+
+- [chainq](https://chainq.serhiifotex.dev/) — one CLI for the crypto world: prices, balances, gas, DEX pools, and more across 25+ networks. Same terminal-first, agent-friendly spirit as Fram, by the same author.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).

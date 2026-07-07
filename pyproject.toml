@@ -25,9 +25,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Sergio-prog/fram"
+Homepage = "https://fram.serhiifotex.dev/"
 Repository = "https://github.com/Sergio-prog/fram"
 Issues = "https://github.com/Sergio-prog/fram/issues"
+Chainq = "https://chainq.serhiifotex.dev/"
 
 [dependency-groups]
 dev = [
