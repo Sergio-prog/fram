@@ -149,7 +149,3 @@ Videos:
     uv sync --all-extras
     uv run --all-extras --group dev python -m pytest
     uv run --all-extras --group dev ruff check .
-
-## See also
-
-- Chainq — one CLI for the crypto world: prices, balances, gas, transactions, lending markets, DEX pools, perps, and NFT floors across 25+ networks; no API keys required. By the same author. https://chainq.serhiifotex.dev/

@@ -23,4 +23,4 @@ Fram is a Python 3.11+ CLI built with Typer, using Pillow for images and FFmpeg 
 ## Optional
 
 - [GitHub repository](https://github.com/Sergio-prog/fram)
-- [Chainq](https://chainq.serhiifotex.dev/): one CLI for the crypto world — prices, balances, gas, DEX pools across 25+ networks; by the same author
+- [Website](https://fram.serhiifotex.dev/)

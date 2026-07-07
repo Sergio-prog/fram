@@ -15,7 +15,7 @@
   <em>Preview of TUI</em>
 </p>
 
-A compact media workshop for your terminal and agent automation.
+A compact media workshop for your terminal and agent automation. Website: [fram.serhiifotex.dev](https://fram.serhiifotex.dev/)
 
 Fram crops, resizes, compresses, and converts images; cuts, resizes, crops, compresses, changes FPS, strips audio, extracts frames, and makes GIFs from videos. The CLI uses a typed processing core.
 
@@ -220,10 +220,6 @@ Docs:
 - [Media Support](docs/media-support.md)
 - [Roadmap](docs/roadmap.md)
 - [Releasing](docs/releasing.md)
-
-## See Also
-
-- [chainq](https://chainq.serhiifotex.dev/) — one CLI for the crypto world: prices, balances, gas, DEX pools, and more across 25+ networks. Same terminal-first, agent-friendly spirit as Fram, by the same author.
 
 ## License
 
