@@ -1,0 +1,155 @@
+# Fram — full documentation for LLMs
+
+> A compact media workshop for your terminal and agent automation. Fram crops, resizes, compresses, and converts images; cuts, resizes, crops, compresses, changes FPS, strips audio, extracts frames, and makes GIFs from videos. A strict, scriptable CLI backed by a typed processing core, plus an interactive TUI.
+
+- Language/runtime: Python 3.11+
+- CLI framework: Typer; TUI: Textual (with textual-image previews)
+- Media backends: Pillow (images), FFmpeg (video — must be installed locally)
+- License: MIT
+- Repository: https://github.com/Sergio-prog/fram
+- Website: https://fram.serhiifotex.dev/
+- Status: early hobby project; the strict CLI and basic interactive TUI are the main focus
+
+## Install
+
+Requires Python 3.11+ and FFmpeg (for video work).
+
+Install script:
+
+    curl -LsSf https://fram.serhiifotex.dev/install.sh | sh
+
+Homebrew (planned through a tap; installs FFmpeg automatically):
+
+    brew tap Sergio-prog/fram
+    brew install fram
+
+Manual with uv:
+
+    uv tool install git+https://github.com/Sergio-prog/fram.git
+
+Manual with pipx:
+
+    pipx install git+https://github.com/Sergio-prog/fram.git
+
+After the first PyPI release the manual commands become `uv tool install fram` / `pipx install fram`.
+
+From a local checkout:
+
+    scripts/install.sh
+    uv tool install .
+    pipx install .
+
+## Agent skill
+
+Fram ships an agent skill at skills/SKILL.md so AI coding agents (Claude Code, and any tool that reads the Agent Skills format) can discover and drive the CLI:
+
+    npx skills add Sergio-prog/fram
+
+Use `.claude/skills/fram/` inside a project instead of `~/.claude/skills/` to scope it to a single repository. Once installed, the agent picks up Fram automatically when a task involves inspecting or editing local image and video files.
+
+## Quick start
+
+    fram info image.jpg
+    fram resize image.jpg 128x128 -o image-small.jpg
+    fram convert image.png webp -o image.webp
+
+    fram cut video.mp4 --start 00:00:05 --end 00:00:12 -o clip.mp4
+    fram gif video.mp4 --fps 12 --width 480 -o clip.gif
+    fram strip-audio video.mp4 -o silent.mp4
+
+Help works both ways:
+
+    fram resize --help
+    fram help resize
+
+## Image commands
+
+    fram resize image.jpg 128x128 -o image-small.jpg
+    fram crop image.jpg 128x128 --anchor center -o avatar.jpg
+    fram compress-image image.jpg --quality 80 -o compressed.webp
+    fram convert image.png webp -o image.webp
+    fram rotate image.jpg 90 -o rotated.jpg
+    fram flip image.jpg --horizontal -o flipped.jpg
+    fram strip-metadata image.jpg -o clean.jpg
+    fram blur image.jpg --radius 2 -o blurred.jpg
+    fram grayscale image.jpg -o gray.jpg
+    fram adjust image.jpg --brightness 1.1 --contrast 1.2 -o adjusted.jpg
+    fram sharpen image.jpg --factor 2 -o sharp.jpg
+    fram watermark image.jpg "FRAM" --position bottom-right -o watermarked.png
+    fram upscale image.jpg --factor 2 -o large.jpg
+    fram auto-orient image.jpg -o oriented.jpg
+    fram background transparent.png white -o flattened.jpg
+
+## Video commands
+
+    fram cut video.mp4 --start 00:00:05 --end 00:00:12 -o clip.mp4
+    fram cut video.mp4 --start 5 --duration 10 -o clip.mp4
+    fram fps video.mp4 24 -o video-24fps.mp4
+    fram compress-video video.mp4 --crf 24 --preset medium -o smaller.mp4
+    fram strip-audio video.mp4 -o silent.mp4
+    fram extract-audio video.mp4 -o audio.m4a
+    fram extract-frame video.mp4 --at 00:00:05 -o frame.png
+    fram gif video.mp4 --fps 12 --width 480 -o clip.gif
+    fram speed video.mp4 2 -o fast.mp4
+    fram reverse video.mp4 --no-audio -o reversed.mp4
+    fram grayscale video.mp4 -o gray.mp4
+    fram rotate video.mp4 90 -o rotated.mp4
+    fram flip video.mp4 --horizontal -o flipped.mp4
+    fram mute-audio video.mp4 -o muted.mp4
+    fram thumbnail video.mp4 --at 00:00:05 -o thumbnail.png
+    fram contact-sheet video.mp4 --columns 3 --rows 3 -o sheet.png
+    fram extract-subtitles video.mp4 -o subtitles.srt
+
+## Updates
+
+    fram update --check
+    fram update
+    fram update --from git+https://github.com/Sergio-prog/fram.git@v0.1.0
+
+`fram update` uses `uv tool install --force` when uv is available, then falls back to `pipx install --force`. Fram checks GitHub Releases occasionally and prints a small notice in interactive terminals when a newer release exists. Set `FRAM_UPDATE_CHECK=0` to hide update checks.
+
+## Interactive mode (TUI)
+
+    fram
+    fram image.jpg
+    fram video.mp4
+
+Flow: select file -> select action -> enter params -> add operation -> run
+
+Interactive preview uses terminal image protocols through textual-image; videos show an extracted frame. After running a pipeline, the preview switches to the generated output and can be toggled back to the source.
+
+Shortcuts:
+
+- i: toggle detailed info
+- a: focus actions
+- d: drop last operation
+- Up / Down: switch active slider
+- Left / Right: adjust active slider
+- p: toggle source/output preview after a run
+- r: run
+- q: quit
+
+The cut slider writes the generated `start end` range into the params input when video duration can be read with ffprobe. Numeric sliders are available for actions like adjust, compress, blur, fps, gif, and speed.
+
+## Supported media
+
+Images:
+
+- input: jpg, jpeg, png, webp, bmp, tif, tiff
+- output: jpg, png, webp
+- SVG is detected, but true SVG editing is deferred
+
+Videos:
+
+- input: common FFmpeg-readable formats like mp4, mov, mkv, webm, avi, gif
+- output: depends on output suffix and local FFmpeg codecs
+
+## Development
+
+    uv sync --all-extras
+    uv run --all-extras --group dev python -m pytest
+    uv run --all-extras --group dev ruff check .
+
+## See also
+
+- Chainq — one CLI for the crypto world: prices, balances, gas, transactions, lending markets, DEX pools, perps, and NFT floors across 25+ networks; no API keys required. By the same author. https://chainq.serhiifotex.dev/

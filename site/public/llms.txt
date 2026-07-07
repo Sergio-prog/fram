@@ -1,0 +1,26 @@
+# Fram
+
+> A compact media workshop for your terminal and agent automation. Fram crops, resizes, compresses, and converts images; cuts, resizes, crops, compresses, changes FPS, strips audio, extracts frames, and makes GIFs from videos. A strict, scriptable CLI backed by a typed processing core, plus an interactive TUI.
+
+Fram is a Python 3.11+ CLI built with Typer, using Pillow for images and FFmpeg for video. MIT licensed. Full expanded documentation for LLMs: https://fram.serhiifotex.dev/llms-full.txt
+
+## Install
+
+- Script: `curl -LsSf https://fram.serhiifotex.dev/install.sh | sh`
+- Homebrew: `brew tap Sergio-prog/fram && brew install fram`
+- uv: `uv tool install git+https://github.com/Sergio-prog/fram.git`
+- Agent skill for AI coding agents: `npx skills add Sergio-prog/fram`
+
+## Docs
+
+- [README](https://github.com/Sergio-prog/fram/blob/main/README.md): overview, install, quick start, full command list
+- [CLI reference](https://github.com/Sergio-prog/fram/blob/main/docs/cli.md): strict commands, updates, TUI flow and shortcuts
+- [Media support](https://github.com/Sergio-prog/fram/blob/main/docs/media-support.md): supported formats and operations
+- [Architecture](https://github.com/Sergio-prog/fram/blob/main/docs/architecture.md): typed processing core design
+- [Agent skill](https://github.com/Sergio-prog/fram/blob/main/skills/SKILL.md): lets AI coding agents discover and drive the CLI
+- [Roadmap](https://github.com/Sergio-prog/fram/blob/main/docs/roadmap.md): vision and planned features
+
+## Optional
+
+- [GitHub repository](https://github.com/Sergio-prog/fram)
+- [Chainq](https://chainq.serhiifotex.dev/): one CLI for the crypto world — prices, balances, gas, DEX pools across 25+ networks; by the same author

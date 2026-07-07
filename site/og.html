@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Young+Serif&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    background: linear-gradient(135deg, #262c36 0%, #1b2027 100%);
+    color: #dfd0b8;
+    display: flex;
+    align-items: center;
+    padding: 0 72px;
+    position: relative;
+  }
+  body::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .left { width: 560px; }
+  .wordmark {
+    font-weight: 600;
+    font-size: 26px;
+    letter-spacing: 0.06em;
+    color: #f4e7c5;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 40px;
+  }
+  .bracket {
+    width: 13px; height: 13px;
+    border-left: 3px solid #8ab7db;
+    border-top: 3px solid #8ab7db;
+    transform: translateY(-4px);
+  }
+  .bracket.flip { transform: rotate(180deg) translateY(-4px); }
+  h1 {
+    font-family: "Young Serif", Georgia, serif;
+    font-weight: 400;
+    font-size: 54px;
+    line-height: 1.16;
+    color: #f4e7c5;
+    margin-bottom: 28px;
+  }
+  .cropword { position: relative; display: inline-block; padding: 0 6px; }
+  .m { position: absolute; width: 15px; height: 15px; border: 0 solid #7ddb8a; }
+  .m.tl { top: -13px; left: -13px; border-top-width: 3px; border-left-width: 3px; }
+  .m.tr { top: -13px; right: -13px; border-top-width: 3px; border-right-width: 3px; }
+  .m.bl { bottom: -13px; left: -13px; border-bottom-width: 3px; border-left-width: 3px; }
+  .m.br { bottom: -13px; right: -13px; border-bottom-width: 3px; border-right-width: 3px; }
+  .sub {
+    font-size: 19px;
+    line-height: 1.7;
+    color: rgba(223, 208, 184, 0.65);
+    margin-bottom: 36px;
+    max-width: 30ch;
+  }
+  .tags { font-size: 15px; color: rgba(223, 208, 184, 0.4); letter-spacing: 0.04em; }
+  .tags b { color: #8ab7db; font-weight: 500; }
+  .term {
+    position: absolute;
+    right: -96px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 660px;
+    background: #12161c;
+    border: 1px solid rgba(223, 208, 184, 0.15);
+    border-radius: 18px;
+    box-shadow: 0 40px 80px rgba(8, 10, 14, 0.6);
+    overflow: hidden;
+  }
+  .bar {
+    background: #1b2129;
+    padding: 16px 22px;
+    display: flex;
+    gap: 10px;
+    position: relative;
+  }
+  .dot { width: 14px; height: 14px; border-radius: 50%; }
+  .title {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 15px;
+    color: rgba(223, 208, 184, 0.45);
+  }
+  .term-body { padding: 30px 32px 34px; font-size: 18px; line-height: 2.15; white-space: nowrap; }
+  .p { color: #f4e7c5; }
+  .c { color: #dfd0b8; }
+  .o { color: rgba(223, 208, 184, 0.66); }
+  .ok { color: #7ddb8a; }
+  .ar { color: #8ab7db; }
+  .s { color: #dfd0b8; }
+  .cur { display: inline-block; width: 10px; height: 20px; background: #f4e7c5; vertical-align: middle; }
+</style>
+</head>
+<body>
+  <div class="left">
+    <div class="wordmark"><span class="bracket"></span>fram<span class="bracket flip"></span></div>
+    <h1>Cut, <span class="cropword"><span class="m tl"></span><span class="m tr"></span><span class="m bl"></span><span class="m br"></span>crop</span>, compress. Never leave the prompt.</h1>
+    <div class="sub">A compact media workshop for your terminal and agent automation.</div>
+    <div class="tags"><b>30+</b> typed operations · interactive TUI · agent skill · MIT</div>
+  </div>
+  <div class="term">
+    <div class="bar">
+      <span class="dot" style="background:#ff5f57"></span>
+      <span class="dot" style="background:#febc2e"></span>
+      <span class="dot" style="background:#28c840"></span>
+      <span class="title">fram — zsh</span>
+    </div>
+    <div class="term-body">
+      <div><span class="p">$ </span><span class="c">fram resize voyage.jpg 480x300 -o web.jpg</span></div>
+      <div class="o"><span class="ok">✓</span> web.jpg <span class="s">480x300</span> · 96.4 KB · 0.1s</div>
+      <div><span class="p">$ </span><span class="c">fram gif voyage.mp4 --fps 12 --width 480</span></div>
+      <div class="o"><span class="ok">✓</span> clip.gif <span class="s">480x270</span> · 12 fps · 3.4 MB · 2.8s</div>
+      <div><span class="p">$ </span><span class="c">fram compress-image photo.png --quality 80</span></div>
+      <div class="o"><span class="ok">✓</span> photo.webp · 4.1 MB <span class="ar">→</span> <span class="s">312 KB</span> (-92%)</div>
+      <div><span class="p">$ </span><span class="cur"></span></div>
+    </div>
+  </div>
+</body>
+</html>

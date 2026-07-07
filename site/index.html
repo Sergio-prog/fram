@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fram — a media workshop for your terminal</title>
+    <meta name="description" content="Fram crops, resizes, compresses, and converts images; cuts, re-times, and GIFs videos. A strict CLI, an interactive TUI, and a bundled agent skill." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <meta property="og:title" content="Fram — a media workshop for your terminal" />
+    <meta property="og:description" content="Crop, cut, compress. Never leave the prompt. 30+ typed media operations, an interactive TUI, and an agent skill." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://fram.serhiifotex.dev/" />
+    <meta property="og:image" content="https://fram.serhiifotex.dev/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://fram.serhiifotex.dev/og.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Young+Serif&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="top">
+        <a class="wordmark" href="/" aria-label="Fram home">
+          <span class="bracket" aria-hidden="true"></span>fram<span class="bracket flip" aria-hidden="true"></span>
+        </a>
+        <nav class="top-links">
+          <a class="link" href="https://github.com/Sergio-prog/fram">GitHub ↗</a>
+        </nav>
+      </header>
+
+      <main class="hero">
+        <section class="pitch">
+          <p class="eyebrow">a compact media workshop for the terminal</p>
+          <h1 class="headline">
+            Cut, <span class="cropword"><span class="mark tl"></span><span class="mark tr"></span><span class="mark bl"></span><span class="mark br"></span>crop</span>, compress.<br />
+            Never leave the prompt.
+          </h1>
+          <p class="sub">
+            Fram gives you 30+ typed operations for images and video — resize, convert,
+            re-time, GIF — plus an interactive TUI for hands-on work and a bundled skill
+            so coding agents can drive it too.
+          </p>
+          <div class="install-tabs" role="tablist" aria-label="Install method">
+            <button class="tab active" type="button" role="tab" aria-selected="true" data-method="script">install.sh</button>
+            <button class="tab" type="button" role="tab" aria-selected="false" data-method="brew">brew</button>
+            <button class="tab" type="button" role="tab" aria-selected="false" data-method="uv">uv</button>
+            <button class="tab" type="button" role="tab" aria-selected="false" data-method="skill">agent skill</button>
+          </div>
+          <div class="install">
+            <code class="install-cmd" id="installCmd"><span class="dollar">$</span> <span id="installText">curl -LsSf https://fram.serhiifotex.dev/install.sh | sh</span></code>
+            <button class="copy" id="copyBtn" type="button" aria-label="Copy install command">copy</button>
+          </div>
+          <p class="install-alt">needs Python 3.11+ · FFmpeg for video work</p>
+        </section>
+
+        <section class="demo" aria-label="Live demo of fram commands">
+          <figure class="specimen">
+            <div class="frame" id="frame">
+              <svg id="scene" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A fjord scene being edited">
+                <defs>
+                  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#2e3a4a" />
+                    <stop offset="0.7" stop-color="#5d6b7a" />
+                    <stop offset="1" stop-color="#8ab7db" />
+                  </linearGradient>
+                  <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#40566b" />
+                    <stop offset="1" stop-color="#1b2027" />
+                  </linearGradient>
+                </defs>
+                <rect width="320" height="132" fill="url(#sky)" />
+                <circle cx="230" cy="86" r="26" fill="#f4e7c5" />
+                <circle cx="230" cy="86" r="34" fill="#f4e7c5" opacity="0.18" />
+                <path d="M0 132 L58 62 L96 104 L132 76 L176 132 Z" fill="#232b36" />
+                <path d="M120 132 L188 84 L236 118 L272 96 L320 132 Z" fill="#2e3a48" />
+                <rect y="132" width="320" height="68" fill="url(#sea)" />
+                <rect x="204" y="140" width="52" height="3" fill="#f4e7c5" opacity="0.5" />
+                <rect x="214" y="150" width="32" height="2.4" fill="#f4e7c5" opacity="0.3" />
+                <rect x="220" y="159" width="20" height="2" fill="#f4e7c5" opacity="0.18" />
+                <g fill="#12161c">
+                  <path d="M64 158 L118 158 L110 168 L74 168 Z" />
+                  <rect x="86" y="128" width="2.6" height="30" />
+                  <rect x="100" y="134" width="2.2" height="24" />
+                  <path d="M87.5 130 L104 148 L87.5 148 Z" fill="#dfd0b8" />
+                  <path d="M101 136 L112 150 L101 150 Z" fill="#dfd0b8" opacity="0.85" />
+                </g>
+                <rect x="64" y="170" width="54" height="2" fill="#0c1014" opacity="0.6" />
+              </svg>
+              <span class="mark tl" aria-hidden="true"></span>
+              <span class="mark tr" aria-hidden="true"></span>
+              <span class="mark bl" aria-hidden="true"></span>
+              <span class="mark br" aria-hidden="true"></span>
+            </div>
+            <figcaption class="spec-label"><span id="specName">voyage.jpg</span><span id="specMeta">1600×1000 · 2.4 MB</span></figcaption>
+          </figure>
+
+          <div class="terminal" role="log" aria-label="fram terminal session">
+            <div class="term-bar">
+              <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+              <span class="term-title">fram — zsh</span>
+            </div>
+            <div class="term-body" id="termBody"></div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="facts">
+        <div class="fact">
+          <span class="fact-label">images</span>
+          <span class="fact-value">15 operations</span>
+          <span class="fact-note">resize · blur · watermark · upscale</span>
+        </div>
+        <div class="fact">
+          <span class="fact-label">video</span>
+          <span class="fact-value">16 operations</span>
+          <span class="fact-note">cut · fps · gif · contact-sheet</span>
+        </div>
+        <div class="fact">
+          <span class="fact-label">hands-on</span>
+          <span class="fact-value">interactive TUI</span>
+          <span class="fact-note">fram image.jpg</span>
+        </div>
+        <div class="fact">
+          <span class="fact-label">agents</span>
+          <span class="fact-value">skill included</span>
+          <span class="fact-note">npx skills add Sergio-prog/fram</span>
+        </div>
+        <p class="footnote"><em>fram</em> /frɑm/ — Norwegian for “forward”. Also: <em>frame</em>, cropped.</p>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
