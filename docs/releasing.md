@@ -8,7 +8,7 @@ Fram can be distributed through PyPI, the install script, and a Homebrew tap. Th
 - `uv`
 - FFmpeg for local media smoke tests
 - A PyPI project named `fram`
-- A Homebrew tap, for example `Sergio-prog/homebrew-fram`
+- The Homebrew tap [Sergio-prog/homebrew-tap](https://github.com/Sergio-prog/homebrew-tap) and a `TAP_GITHUB_TOKEN` repository secret with push access to it
 
 ## PyPI
 
@@ -150,38 +150,26 @@ boring: static file, HTTPS, short cache, no server-side logic.
 
 ## Homebrew
 
-Homebrew is useful for macOS because the formula can declare FFmpeg as a required dependency.
+The formula lives in [Sergio-prog/homebrew-tap](https://github.com/Sergio-prog/homebrew-tap) as `Formula/fram.rb`. It builds from the GitHub tag tarball, so it does not depend on PyPI, and declares FFmpeg as a dependency.
 
-The formula template lives at:
+The `homebrew` job in the publish workflow regenerates the formula on every version tag: it renders `packaging/homebrew/fram.rb.tmpl` with the tarball URL and sha256 via `scripts/update_tap_formula.py`, then commits `Formula/fram.rb` to the tap using `TAP_GITHUB_TOKEN`.
 
-```text
-packaging/homebrew/Formula/fram.rb
-```
-
-Release flow:
-
-1. Publish the PyPI package.
-2. Download or inspect the PyPI source distribution hash.
-3. Replace `REPLACE_WITH_PYPI_SDIST_SHA256` in the formula.
-4. Copy the formula to the tap repository, usually `Formula/fram.rb`.
-5. Run Homebrew's Python resource generator inside the tap:
+To update the tap manually:
 
 ```bash
-brew update-python-resources Formula/fram.rb
+python3 scripts/update_tap_formula.py 0.1.0 ../homebrew-tap/Formula/fram.rb
 ```
 
-6. Test the formula locally:
+To test a formula before pushing, copy it into the local tap checkout and install from there (Homebrew refuses standalone formula files):
 
 ```bash
-brew install --build-from-source ./Formula/fram.rb
-brew test fram
+cp ../homebrew-tap/Formula/fram.rb "$(brew --repository sergio-prog/tap)/Formula/"
+brew install --build-from-source sergio-prog/tap/fram
+brew test sergio-prog/tap/fram
 ```
 
-Expected user install:
+User install:
 
 ```bash
-brew tap Sergio-prog/fram
-brew install fram
+brew install sergio-prog/tap/fram
 ```
-
-If the tap repository is named `homebrew-fram`, users still run `brew tap Sergio-prog/fram`; Homebrew strips the `homebrew-` prefix.

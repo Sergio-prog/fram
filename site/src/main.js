@@ -9,7 +9,7 @@ const tabs = [...document.querySelectorAll(".tab")];
 
 const INSTALL_COMMANDS = {
   script: "curl -LsSf https://fram.serhiifotex.dev/install.sh | sh",
-  brew: "brew tap Sergio-prog/fram && brew install fram",
+  brew: "brew install sergio-prog/tap/fram",
   uv: "uv tool install git+https://github.com/Sergio-prog/fram.git",
   skill: "npx skills add Sergio-prog/fram",
 };
