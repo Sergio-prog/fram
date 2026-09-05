@@ -1,0 +1,28 @@
+class Fram < Formula
+  include Language::Python::Virtualenv
+
+  desc "Compact media workshop for terminal and agent automation"
+  homepage "https://fram.serhiifotex.dev/"
+  url "{{URL}}"
+  sha256 "{{SHA256}}"
+  license "MIT"
+  head "https://github.com/Sergio-prog/fram.git", branch: "main"
+
+  livecheck do
+    url :stable
+    strategy :github_latest
+  end
+
+  depends_on "ffmpeg"
+  depends_on "python@3.12"
+
+  def install
+    virtualenv_create(libexec, "python3.12")
+    system libexec/"bin/python", "-m", "pip", "install", "--quiet", buildpath
+    bin.install_symlink libexec/"bin/fram"
+  end
+
+  test do
+    assert_match version.to_s, shell_output("#{bin}/fram version")
+  end
+end

@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -16,6 +17,7 @@ from fram.core.errors import FramError
 REPOSITORY = "Sergio-prog/fram"
 LATEST_RELEASE_URL = f"https://api.github.com/repos/{REPOSITORY}/releases/latest"
 RELEASE_PAGE_URL = f"https://github.com/{REPOSITORY}/releases/latest"
+HOMEBREW_FORMULA = "sergio-prog/tap/fram"
 DEFAULT_CACHE_TTL_SECONDS = 12 * 60 * 60
 
 
@@ -99,7 +101,10 @@ def install_latest_release(source: str | None = None) -> str:
         raise FramError("Could not find the latest GitHub release.")
 
     package_source = source or f"git+https://github.com/{REPOSITORY}.git@{status.latest.tag}"
-    command = _installer_command(package_source)
+    if source is None and _installed_with_homebrew():
+        command = _homebrew_upgrade_command()
+    else:
+        command = _installer_command(package_source)
     result = subprocess.run(command, text=True, check=False)
     if result.returncode != 0:
         raise FramError(f"Update command failed with exit code {result.returncode}.")
@@ -121,6 +126,20 @@ def normalize_version(value: str) -> str:
     if version.startswith(("v", "V")):
         version = version[1:]
     return version
+
+
+def _installed_with_homebrew() -> bool:
+    parts = Path(sys.prefix).resolve().parts
+    return any(
+        parent == "Cellar" and child == "fram"
+        for parent, child in zip(parts, parts[1:], strict=False)
+    )
+
+
+def _homebrew_upgrade_command() -> list[str]:
+    if shutil.which("brew"):
+        return ["brew", "upgrade", HOMEBREW_FORMULA]
+    raise FramError("Fram was installed with Homebrew, but `brew` is not on PATH.")
 
 
 def _installer_command(package_source: str) -> list[str]:

@@ -49,7 +49,7 @@ fram update
 fram update --from git+https://github.com/Sergio-prog/fram.git@v0.1.0
 ```
 
-`fram update` uses `uv tool install --force` when `uv` is available, then falls back to `pipx install --force`. Normal commands and the TUI occasionally check GitHub Releases and show a small notice when a newer version exists. Set `FRAM_UPDATE_CHECK=0` to hide those checks.
+`fram update` runs `brew upgrade sergio-prog/tap/fram` for Homebrew installs. Otherwise it uses `uv tool install --force` when `uv` is available, then falls back to `pipx install --force`. Normal commands and the TUI occasionally check GitHub Releases and show a small notice when a newer version exists. Set `FRAM_UPDATE_CHECK=0` to hide those checks.
 
 Interactive commands:
 

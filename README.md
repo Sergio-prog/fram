@@ -52,11 +52,10 @@ Windows PowerShell:
 powershell -ExecutionPolicy Bypass -c "irm https://fram.serhiifotex.dev/install.ps1 | iex"
 ```
 
-Homebrew support is planned through a tap, which will install FFmpeg automatically:
+Homebrew (installs FFmpeg automatically):
 
 ```bash
-brew tap Sergio-prog/fram
-brew install fram
+brew install sergio-prog/tap/fram
 ```
 
 Manual install with `uv tool`:
