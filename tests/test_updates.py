@@ -45,6 +45,7 @@ def test_install_latest_release_uses_release_tag(monkeypatch) -> None:
     calls: list[list[str]] = []
 
     monkeypatch.setattr(updates, "check_for_update", lambda **kwargs: status)
+    monkeypatch.setattr(updates.sys, "prefix", "/home/user/.local/share/uv/tools/fram")
     monkeypatch.setattr(
         updates.shutil,
         "which",
@@ -64,3 +65,45 @@ def test_install_latest_release_uses_release_tag(monkeypatch) -> None:
     assert calls == [
         ["uv", "tool", "install", "--force", "git+https://github.com/Sergio-prog/fram.git@v9.9.9"]
     ]
+
+
+def test_install_latest_release_uses_brew_for_homebrew_installs(monkeypatch) -> None:
+    release = updates.ReleaseInfo("9.9.9", "v9.9.9", "https://example.test/release")
+    status = updates.UpdateStatus(current_version="0.1.0", latest=release)
+    calls: list[list[str]] = []
+
+    monkeypatch.setattr(updates, "check_for_update", lambda **kwargs: status)
+    monkeypatch.setattr(updates.sys, "prefix", "/opt/homebrew/Cellar/fram/0.1.0/libexec")
+    monkeypatch.setattr(updates.shutil, "which", lambda name: f"/opt/homebrew/bin/{name}")
+
+    def fake_run(command: list[str], text: bool, check: bool):
+        calls.append(command)
+        return type("Result", (), {"returncode": 0})()
+
+    monkeypatch.setattr(updates.subprocess, "run", fake_run)
+    monkeypatch.setattr(updates, "_write_cached_release", lambda latest: None)
+
+    result = updates.install_latest_release()
+
+    assert result == "Updated Fram to 9.9.9."
+    assert calls == [["brew", "upgrade", "sergio-prog/tap/fram"]]
+
+
+def test_install_latest_release_honors_source_on_homebrew_installs(monkeypatch) -> None:
+    status = updates.UpdateStatus(current_version="0.1.0", latest=None)
+    calls: list[list[str]] = []
+
+    monkeypatch.setattr(updates, "check_for_update", lambda **kwargs: status)
+    monkeypatch.setattr(updates.sys, "prefix", "/opt/homebrew/Cellar/fram/0.1.0/libexec")
+    monkeypatch.setattr(updates.shutil, "which", lambda name: f"/opt/homebrew/bin/{name}")
+
+    def fake_run(command: list[str], text: bool, check: bool):
+        calls.append(command)
+        return type("Result", (), {"returncode": 0})()
+
+    monkeypatch.setattr(updates.subprocess, "run", fake_run)
+    monkeypatch.setattr(updates, "_clear_cached_release", lambda: None)
+
+    updates.install_latest_release("git+https://example.test/fram.git")
+
+    assert calls == [["uv", "tool", "install", "--force", "git+https://example.test/fram.git"]]
